@@ -9,4 +9,5 @@ module.exports = {
     CLASS_DIR: path.join(ROOT_DIR, 'lib/class'),
     TOOL_DIR: path.join(ROOT_DIR, 'lib/tool'),
     ROUTER: path.join(ROOT_DIR, 'router'),
+    VALIDATE_ENTRY: path.join(ROOT_DIR, 'lib/shared/utils'),
 };

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="6041f14f-d213-4e18-86e6-d43195732639" name="croco-server">
+        <fileTransfer accessType="SFTP" host="192.168.100.103" port="22" sshConfigId="8d270693-6f09-483c-80e7-5af3de0ed9af" sshConfig="whatsapp@192.168.100.103:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
