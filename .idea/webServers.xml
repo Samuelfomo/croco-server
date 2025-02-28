@@ -9,6 +9,20 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="87affd18-722a-47e8-9a52-e0ba8e0cdee1" name="croco+aws">
+        <fileTransfer accessType="SFTP" host="13.37.222.126" port="22" sshConfigId="3c3f3082-7c4a-4ac2-bea5-ebdc33ee61a4" sshConfig="ubuntu@13.37.222.126:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="466f43df-96ee-4341-bca5-6aa2c34b9053" name="cloud-croco" url="http://ftp.nege5774.odns.fr">
+        <fileTransfer host="ftp.nege5774.odns.fr" port="21">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

@@ -24,6 +24,9 @@ const DecoderModel = require(path.join(paths.MDL_DIR, 'DecoderModel'));
 const ProfilModel = require(path.join(paths.MDL_DIR, 'ProfilModel'));
 const StatusModel = require(path.join(paths.MDL_DIR, 'StatusModel'));
 const UserModel = require(path.join(paths.MDL_DIR, 'UserModel'));
+const OperationModel = require(path.join(paths.MDL_DIR, 'OperationModel'));
+const SubscriptionModel = require(path.join(paths.MDL_DIR, 'SubscriptionModel'));
+const LexiconModel = require(path.join(paths.MDL_DIR, 'LexiconModel'));
 
 async function main() {
     try {
@@ -37,6 +40,9 @@ async function main() {
         await ProfilModel.initialize();
         await StatusModel.initialize();
         await UserModel.initialize();
+        await OperationModel.initialize();
+        await SubscriptionModel.initialize();
+        await LexiconModel.initialize();
 
         console.log('Application initialized successfully');
     } catch (error) {
@@ -53,12 +59,12 @@ async function main() {
 main().then(r => {
     console.log("Here is the section Router");
 
-    // const lexiconRoute = require(path.join(paths.ROUTER, 'lexicon'));
+    const lexiconRoute = require(path.join(paths.ROUTER, 'lexicon'));
     const contactRoute = require(path.join(paths.ROUTER, 'contact'));
     // const enterpriseRoute = require(path.join(paths.ROUTER, 'enterprise'));
     // const loginRoute = require(path.join(paths.ROUTER, 'login'));
     //
-    // app.use("/lexicon", lexiconRoute);
+    app.use("/lexicon", lexiconRoute);
     app.use("/contact", contactRoute);
     // app.use("/enterprise", enterpriseRoute);
     // app.use("/login", loginRoute);

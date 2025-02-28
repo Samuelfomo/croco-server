@@ -15,16 +15,19 @@ router.post('/add', async(req, res) => {
         if (!code || !lastname || !city || !language || !gender || !mobile || !email){
           return R.handleError(res, W.errorMissingFields, 400);
         }
-        const validmail = V.validate.email(email);
-        if (validmail){
-            console.log(email,'is valid')
+        // const validmail = V.validate.email(email);
+        // if (!validmail){
+        //     return R.handleError(res, "invalid_email_format", 400);
+        // }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email && !emailRegex.test(email)) {
+            return R.handleError(res, "invalid_email_format", 400);
         }
-        else{
-            console.log(email, 'is not valid')
-        }
+
+        // const validmobile =
     }
     catch (error){
-
+        return R.handleError(res, "internal_server_error", 500);
     }
 })
 

@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="croco-server" deleteMissingItems="true" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="cloud-croco" deleteMissingItems="true" autoUploadExternalChanges="true" showNewOnSourceInSync="false">
     <serverData>
+      <paths name="cloud-croco">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="croco+aws">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/html/croco" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="croco-server">
         <serverdata>
           <mappings>

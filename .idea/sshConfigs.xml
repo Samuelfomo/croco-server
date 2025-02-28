@@ -3,6 +3,7 @@
   <component name="SshConfigs">
     <configs>
       <sshConfig authType="PASSWORD" host="192.168.100.103" id="8d270693-6f09-483c-80e7-5af3de0ed9af" port="22" nameFormat="DESCRIPTIVE" username="whatsapp" useOpenSSHConfig="true" />
+      <sshConfig host="13.37.222.126" id="3c3f3082-7c4a-4ac2-bea5-ebdc33ee61a4" keyPath="$PROJECT_DIR$/../passed/imediatis.pem" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" useOpenSSHConfig="true" />
     </configs>
   </component>
 </project>
