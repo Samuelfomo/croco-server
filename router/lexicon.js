@@ -20,11 +20,12 @@ router.post('/add', async (req, res) => {
         const lexicon = new Lexicon(reference, truncatedEnglish, french, portable, null, guid);
 
         let entry;
-        if (guid) {
-            entry = await lexicon.save();
-        } else {
-            entry = await lexicon.save();
-        }
+        // if (guid) {
+        //     entry = await lexicon.save();
+        // } else {
+        //     entry = await lexicon.save();
+        // }
+        entry = await lexicon.save();
 
         return R.response(true, entry.toJson(), res, 200);
 

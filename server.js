@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 3000;
-const host = '192.168.100.103';
+// const host = '192.168.100.103';
 const os = require('os');
 const path = require('path');
 const paths = require('./config/paths');
@@ -55,19 +55,22 @@ async function main() {
     }, 1000);
 }
 
-
 main().then(r => {
     console.log("Here is the section Router");
 
     const lexiconRoute = require(path.join(paths.ROUTER, 'lexicon'));
     const contactRoute = require(path.join(paths.ROUTER, 'contact'));
-    // const enterpriseRoute = require(path.join(paths.ROUTER, 'enterprise'));
-    // const loginRoute = require(path.join(paths.ROUTER, 'login'));
-    //
+    const profilRoute = require(path.join(paths.ROUTER, 'profil'));
+    const UserRoute = require(path.join(paths.ROUTER, 'user'));
+    const CountryRoute = require(path.join(paths.ROUTER, 'country'));
+    const CityRoute = require(path.join(paths.ROUTER, 'city'));
+
     app.use("/lexicon", lexiconRoute);
     app.use("/contact", contactRoute);
-    // app.use("/enterprise", enterpriseRoute);
-    // app.use("/login", loginRoute);
+    app.use("/profil", profilRoute);
+    app.use("/user", UserRoute);
+    app.use("/country", CountryRoute);
+    app.use("/city", CityRoute);
 });
 
 
