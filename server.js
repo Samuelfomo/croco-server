@@ -1,17 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const host = '127.0.0.1';
 const port = 3000;
-// const host = '192.168.100.103';
 const os = require('os');
 const path = require('path');
 const paths = require('./config/paths');
 
-const permissionAccess = {
-    origin : "http://localhost:3000",
-}
+// const permissionAccess = {
+//     origin : "http://localhost:3000",
+// }
 
-app.use(cors(permissionAccess));
+app.use(cors());
 app.use(express.json());
 
 const CountryModel = require(path.join(paths.MDL_DIR, 'CountryModel'));
@@ -77,6 +77,6 @@ main().then(r => {
 /**
  * Listen app
  */
-app.listen(port, os.hostname(), async() => {
-    console.log(`Server running on ${os.hostname()}:${port}`)
+app.listen(port, host, async() => {
+    console.log(`Server running on ${host}:${port}`)
 });

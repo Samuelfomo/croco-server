@@ -2,6 +2,7 @@ const express = require('express');
 const V = require("../lib/shared/utils/validation")
 
 const {Contact} = require("../lib/class/Contact");
+const {City} = require("../lib/class/City");
 const R = require("../lib/tool/Reply");
 const W = require("../lib/tool/Watcher");
 
@@ -10,7 +11,7 @@ const router = express.Router();
 router.post('/add', async(req, res) => {
     try {
         const {firstname, lastname, city, location, language, gender, mobile, email, guid} = req.body;
-        if (!lastname.trim() || !city.trim() || !language.trim() || !gender.trim() || !mobile.trim() || !email.trim()){
+        if (!lastname || !city|| !language || !gender || !mobile || !email){
           return R.handleError(res, W.errorMissingFields, 400);
         }
         if (!V.email(email)){
@@ -20,18 +21,18 @@ router.post('/add', async(req, res) => {
             return R.handleError(res, "invalid_mobile_format", 400);
         }
 
-        const  contact = new Contact(firstname, lastname, city, location, language, gender, mobile, email, null, guid);
+        const cityData = new City(null, city, null, null)
+        const cityResponse = await cityData.getByGuid()
+        if (!cityResponse){
+            return R.handleError(res, 'city_not_found', 404);
+        }
+        const  contact = new Contact(null, guid, firstname, lastname, location, language, gender, mobile, email, cityResponse);
         const entry = await contact.save();
         return R.response(true, entry.toJson(), res, 200);
-
-        // return  R.handleResponse(res, "email_validation_successfully", 200);
-        // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        // if (email && !emailRegex.test(email)) {
-        //     return R.handleError(res, "invalid_email_format", 400);
-        // }
     }
     catch (error){
-        return R.handleError(res, "internal_server_error", 500);
+        return R.handleError(res, error.message, 500);
+        // return R.handleError(res, "internal_server_error", 500);
     }
 })
 
