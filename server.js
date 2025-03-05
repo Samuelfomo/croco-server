@@ -27,6 +27,7 @@ const UserModel = require(path.join(paths.MDL_DIR, 'UserModel'));
 const OperationModel = require(path.join(paths.MDL_DIR, 'OperationModel'));
 const SubscriptionModel = require(path.join(paths.MDL_DIR, 'SubscriptionModel'));
 const LexiconModel = require(path.join(paths.MDL_DIR, 'LexiconModel'));
+const TerminalModel = require(path.join(paths.MDL_DIR, 'TerminalModel'));
 
 async function main() {
     try {
@@ -43,6 +44,7 @@ async function main() {
         await OperationModel.initialize();
         await SubscriptionModel.initialize();
         await LexiconModel.initialize();
+        await TerminalModel.initialize();
 
         console.log('Application initialized successfully');
     } catch (error) {

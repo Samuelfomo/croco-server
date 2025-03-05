@@ -1,5 +1,5 @@
 const express = require('express');
-const {Status} = require("../lib/class/Status");
+const {Formula} = require("../lib/class/Formula");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 
@@ -7,14 +7,13 @@ const router = express.Router();
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, name, color, position} = req.body;
+        const {guid, name, amount, comment, option} = req.body;
 
-        if(!name.trim() || !color.trim() || !position){
+        if(!name.trim() || !amount){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const  status = new Status(null, guid, name, color, position);
-
-        const entry = await status.save();
+        const  formula = new Formula(null, guid, name, amount, comment, option);
+        const entry = await formula.save();
         return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){
