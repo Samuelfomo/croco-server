@@ -2,6 +2,7 @@ const express = require('express');
 const {Country} = require("../lib/class/Country");
 const R = require("../lib/tool/Reply");
 const W = require("../lib/tool/Watcher");
+const {City} = require("../lib/class/City");
 
 const router = express.Router();
 
@@ -21,6 +22,16 @@ router.post('/add', async(req, res) => {
     catch (error){
         return R.handleError(res, error.message, 500);
     }
-})
+});
+router.get('/all',async (req, res) =>{
+
+    const countryData = await Country.getAll();
+    if (countryData.length === 0)
+    {
+        return R.response(false, 'country_not_found', res, 404);
+    }
+    const result = await Promise.all(countryData.map(async (entry) => (await Country.fromJson(entry)).toJson()));
+    return R.response(true,  result, res, 200);
+});
 
 module.exports = router;

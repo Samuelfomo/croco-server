@@ -7,7 +7,32 @@ const R = require("../lib/tool/Reply");
 
 const router = express.Router();
 
-console.log('test now');
+router.put('/login', async(req, res) => {
+    try {
+        const userId = req.user.uuid;
+        const {code, pin} = req.body;
+
+        if(!code || !code){
+            return R.handleError(res, W.errorMissingFields, 400)
+        }
+
+        if (code.length !==6 || pin.length !==4){
+            return R.handleError(res, 'User_Authentication_failed_by_entry', 401)
+        }
+        const entry = await User.verify(code, pin);
+        if(!entry){
+            return R.response(false, 'User_Authentication_failed', res, 401)
+        }
+        if(entry.blocked === true || entry.activated === false || entry.deleted === true){
+            return R.response(false, 'User_Authentication_failed', res, 401)
+        }
+
+        return R.response(true, entry.toJson(), res, 200);
+    }
+    catch (error){
+        return R.handleError(res, "internal_server_error", 500);
+    }
+});
 
 router.put('/check', async(req, res) => {
     try {
@@ -16,7 +41,7 @@ router.put('/check', async(req, res) => {
         {
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const userAdmin = new User(null, null, createdBy, null, null, null, null, null, null, null, null, null);
+        const userAdmin = new User(null, null, null, createdBy, null, null, null, null, null, null, null, null, null);
         const existCreatedBy = await userAdmin.getUserManager();
         if(!existCreatedBy){
             return R.handleError(res, 'manager_not_found', 404);
@@ -36,12 +61,12 @@ router.put('/validate', async(req, res) => {
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
-        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null);
+        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null, null);
         const existManager = await managerData.getByGuid();
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null);
+        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null, null);
         const existPartner = await partnerData.getByGuid();
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
@@ -64,12 +89,12 @@ router.put('/blocked', async(req, res) => {
         if (!managerGuid || !userGuid){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null);
+        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null, null);
         const existManager = await managerData.getByGuid();
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null);
+        const partnerData = new User(null, userGuid, null,null, null, null, null, null, null, null, null, null, null);
         const existPartner = await partnerData.getByGuid();
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
@@ -92,7 +117,7 @@ router.put('/delete', async(req, res) => {
         if (!userGuid){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null);
+        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null, null);
         const existPartner = await partnerData.getByGuid();
         if(!existPartner){
             return R.handleError(res, 'Permission_denied', 403);
@@ -111,7 +136,7 @@ router.get('/mypartner', async(req, res) => {
         if (!managerGuid){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null);
+        const managerData = new User(null, managerGuid, null,null, null, null, null, null, null, null, null, null, null);
         const existManager = await managerData.getByGuid();
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
@@ -122,7 +147,7 @@ router.get('/mypartner', async(req, res) => {
         }
         const result = await Promise.all(allPartner.map(async (entry) => (await User.fromJson(entry)).toJson()));
         //const  result = allPartner.map(entry =>User.fromJson(entry).toJson());
-        return R.response(true, result, res, 200);
+        return R.response(true,  result, res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
@@ -131,9 +156,9 @@ router.get('/mypartner', async(req, res) => {
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, profil, contact, createdBy} = req.body;
+        const {guid, profil, contact, createdBy, name} = req.body;
 
-        if (!contact || !createdBy){
+        if (!contact || !createdBy || !name){
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
@@ -143,7 +168,7 @@ router.post('/add', async(req, res) => {
             return R.handleError(res, 'contac_not_found', 404);
         }
 
-        const createdByData = new User(null, createdBy, null, null, null, null, null, null, null, null, null, null)
+        const createdByData = new User(null, createdBy, null,null, null, null, null, null, null, null, null, null, null)
         const createdByResponse = await  createdByData.getByGuid();
         if (!createdByResponse){
             return R.handleError(res, 'manager_not_found', 404);
@@ -156,38 +181,13 @@ router.post('/add', async(req, res) => {
             return R.handleError(res, 'profil_not_found', 404);
         }
 
-        const userData = new User(null, guid, null, null, profilResponse, contactResponse, false, false, createdByResponse, false, false, null);
+        const userData = new User(null, guid, name,null, null, profilResponse, contactResponse, false, false, createdByResponse, false, false, null);
 
         const entry = await userData.save();
         return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
-    }
-});
-
-router.put('/login', async(req, res) => {
-    try {
-        const {code, pin} = req.body;
-
-        if(!code || !code){
-            return R.handleError(res, W.errorMissingFields, 400)
-        }
-
-        if (code.length !==6 || pin.length !==4){
-            return R.handleError(res, 'User_Authentication_failed_by_entry', 401)
-        }
-        const entry = await User.verify(code, pin);
-        if(!entry){
-            return R.response(false, 'User_Authentication_failed', res, 401)
-        }
-        if(entry.blocked === true || entry.activated === false || entry.deleted === true){
-            return R.response(false, 'User_Authentication_failed', res, 401)
-        }
-        return R.response(true, entry.toJson(), res, 200);
-    }
-    catch (error){
-        return R.handleError(res, "internal_server_error", 500);
     }
 })
 

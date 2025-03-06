@@ -14,8 +14,7 @@ router.post('/add', async(req, res) => {
         }
         const  profil = new Profil(name, description, guid, null);
 
-        let entry;
-         entry = await profil.save();
+         const entry = await profil.save();
         return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){

@@ -3,6 +3,7 @@ const {City} = require("../lib/class/City");
 const R = require("../lib/tool/Reply");
 const W = require("../lib/tool/Watcher");
 const {Country} = require('../lib/class/Country')
+const {User} = require("../lib/class/User");
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.post('/add', async(req, res) => {
 
         const countryData = new Country(null, null, null, null, null, country, null)
         const countryResponse = await  countryData.getByGuid();
+        // const countryResult = countryResponse.toJson()
         if (!countryResponse){
             return R.handleError(res, 'country_not_found', 404)
         }
@@ -27,6 +29,23 @@ router.post('/add', async(req, res) => {
     catch (error){
         return R.handleError(res, error.message, 500);
     }
-})
+});
+router.put('/list',async (req, res) =>{
+     const {country} = req.body;
+     if(!country){
+         return R.handleError(res, W.errorMissingFields, 400);
+     }
+     const countryData = new Country(null, null, null, null, null, country, null)
+     const countryResponse = await countryData.getByGuid();
+     if (!countryResponse){
+         return  R.response(false, 'country_not_found', res, 404);
+     }
+     const cityData = await City.getCityById(countryResponse.id);
+     if (cityData.length === 0){
+         return R.handleError(res, 'country_not_found', 404);
+     }
+     const result = await Promise.all(cityData.map(async (entry) => (await City.fromJson(entry)).toJson()));
+     return R.response(true,  result, res, 200);
+ });
 
 module.exports = router;

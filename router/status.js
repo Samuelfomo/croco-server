@@ -9,11 +9,10 @@ router.post('/add', async(req, res) => {
     try {
         const {guid, name, color, position} = req.body;
 
-        if(!name.trim() || !color.trim() || !position){
+        if(!name || !color || !position){
             return R.handleError(res, W.errorMissingFields, 400)
         }
         const  status = new Status(null, guid, name, color, position);
-
         const entry = await status.save();
         return R.response(true, entry.toJson(), res, 200);
     }

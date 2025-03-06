@@ -6,6 +6,7 @@ const port = 3000;
 const os = require('os');
 const path = require('path');
 const paths = require('./config/paths');
+const verifyToken = require('./config/auth');
 
 // const permissionAccess = {
 //     origin : "http://localhost:3000",
@@ -66,15 +67,18 @@ main().then(r => {
     const UserRoute = require(path.join(paths.ROUTER, 'user'));
     const CountryRoute = require(path.join(paths.ROUTER, 'country'));
     const CityRoute = require(path.join(paths.ROUTER, 'city'));
+    const statusRoute = require(path.join(paths.ROUTER, 'status'));
+    const AuthRoute = require(path.join(paths.ROUTER, 'auth'));
 
     app.use("/lexicon", lexiconRoute);
-    app.use("/contact", contactRoute);
-    app.use("/profil", profilRoute);
-    app.use("/user", UserRoute);
-    app.use("/country", CountryRoute);
-    app.use("/city", CityRoute);
+    app.use("/contact", verifyToken, contactRoute);
+    app.use("/profil", verifyToken, profilRoute);
+    app.use("/user", verifyToken, UserRoute);
+    app.use("/country", verifyToken, CountryRoute);
+    app.use("/city", verifyToken, CityRoute);
+    app.use("/status", statusRoute);
+    app.use("/token", AuthRoute);
 });
-
 
 /**
  * Listen app
