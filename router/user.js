@@ -2,6 +2,7 @@ const express = require('express');
 const {User} = require("../lib/class/User");
 const {Profil} = require("../lib/class/Profil");
 const {Contact} = require("../lib/class/Contact");
+const {Terminal} = require("../lib/class/Terminal");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 
@@ -16,7 +17,7 @@ router.put('/login', async(req, res) => {
             return R.handleError(res, W.errorMissingFields, 400)
         }
 
-        if (code.length !==6 || pin.length !==4){
+        if (code.toString().length!==6 || pin.toString().length !==4){
             return R.handleError(res, 'User_Authentication_failed_by_entry', 401)
         }
         const entry = await User.verify(code, pin);
@@ -26,7 +27,11 @@ router.put('/login', async(req, res) => {
         if(entry.blocked === true || entry.activated === false || entry.deleted === true){
             return R.response(false, 'User_Authentication_failed', res, 401)
         }
-
+        // const terminalData = new Terminal(null, null, userId, entry.id);
+        // const terminal = await terminalData.save()
+        // if (!terminal){
+        //     return R.response(false, 'saving_failed', res, 400);
+        // }
         return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){
@@ -146,7 +151,6 @@ router.get('/mypartner', async(req, res) => {
             return R.handleError(res, 'Your_have_not_partner', 404);
         }
         const result = await Promise.all(allPartner.map(async (entry) => (await User.fromJson(entry)).toJson()));
-        //const  result = allPartner.map(entry =>User.fromJson(entry).toJson());
         return R.response(true,  result, res, 200);
     }
     catch (error){
