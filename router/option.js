@@ -7,12 +7,12 @@ const router = express.Router();
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, name, amount, comment} = req.body;
+        const {guid, code, name, amount, comment, options} = req.body;
 
-        if(!name.trim() || !amount){
+        if(!code.trim() || !name.trim() || !amount){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const  option = new Option(null, guid, name, amount, comment);
+        const  option = new Option(null, guid, code ,name, amount, comment, options);
         const entry = await option.save();
         return R.response(true, entry.toJson(), res, 200);
     }

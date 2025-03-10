@@ -2,7 +2,7 @@ const express = require('express');
 const {User} = require("../lib/class/User");
 const {Profil} = require("../lib/class/Profil");
 const {Contact} = require("../lib/class/Contact");
-const {Terminal} = require("../lib/class/Terminal");
+// const {Terminal} = require("../lib/class/Terminal");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 
@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.put('/login', async(req, res) => {
     try {
-        const userId = req.user.uuid;
+        // const userId = req.user.uuid;
         const {code, pin} = req.body;
 
         if(!code || !code){
@@ -41,12 +41,12 @@ router.put('/login', async(req, res) => {
 
 router.put('/check', async(req, res) => {
     try {
-        const {createdBy} = req.body;
-        if (!createdBy)
+        const {manager} = req.body;
+        if (!manager)
         {
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const userAdmin = new User(null, null, null, createdBy, null, null, null, null, null, null, null, null, null);
+        const userAdmin = new User(null, null, null, manager, null, null, null, null, null, null, null, null, null);
         const existCreatedBy = await userAdmin.getUserManager();
         if(!existCreatedBy){
             return R.handleError(res, 'manager_not_found', 404);
@@ -160,9 +160,9 @@ router.get('/mypartner', async(req, res) => {
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, profil, contact, createdBy, name} = req.body;
+        const {guid, profil, contact, manager, name} = req.body;
 
-        if (!contact || !createdBy || !name){
+        if (!contact || !name){
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
@@ -172,11 +172,21 @@ router.post('/add', async(req, res) => {
             return R.handleError(res, 'contac_not_found', 404);
         }
 
-        const createdByData = new User(null, createdBy, null,null, null, null, null, null, null, null, null, null, null)
-        const createdByResponse = await  createdByData.getByGuid();
-        if (!createdByResponse){
-            return R.handleError(res, 'manager_not_found', 404);
+        let createdByResponse;
+
+        if(manager){
+            const createdByData = new User(null, manager, null,null, null, null, null, null, null, null, null, null, null)
+            createdByResponse = await  createdByData.getByGuid();
+            if (!createdByResponse){
+                return R.handleError(res, 'manager_not_found', 404);
+            }
+        }else {
+            createdByResponse = await User.getDefaultManager();
+            if(!createdByResponse){
+                return R.response(false, 'default_manager_don\'t_found', res, 404);
+            }
         }
+        console.log('createdByResponse is :', createdByResponse);
 
         const profilData = new Profil(null, null, profil, null)
         const profilResponse = await profilData.getByGuid();

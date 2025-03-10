@@ -1,19 +1,21 @@
 const express = require('express');
-const {Formula} = require("../lib/class/Formula");
+const {Subscriber} = require("../lib/class/Subscriber");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
+const {Contact} = require("../lib/class/Contact");
 
 const router = express.Router();
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, code, name, amount, comment, option} = req.body;
+        const {guid, contact} = req.body;
 
-        if(!code.trim() || !name.trim() || !amount){
+        if(!contact || !Number(contact)){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const  formula = new Formula(null, guid, code, name, amount, comment, option);
-        const entry = await formula.save();
+        const contactResponse = await Contact.getContact(contact);
+        const  subscriber = new Subscriber(null, guid, contactResponse.id);
+        const entry = await subscriber.save();
         return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){

@@ -11,7 +11,7 @@ router.post('/add', async(req, res) => {
     try {
         const {name, country, guid} = req.body;
 
-        if (!name?.trim() || !country){
+        if (!name.trim() || !country){
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
@@ -43,6 +43,14 @@ router.put('/list',async (req, res) =>{
      const cityData = await City.getCityById(countryResponse.id);
      if (cityData.length === 0){
          return R.handleError(res, 'country_not_found', 404);
+     }
+     const result = await Promise.all(cityData.map(async (entry) => (await City.fromJson(entry)).toJson()));
+     return R.response(true,  result, res, 200);
+ });
+router.get('/all',async (req, res) =>{
+     const cityData = await City.getCity();
+     if (cityData.length === 0){
+         return R.handleError(res, 'city_not_found', 404);
      }
      const result = await Promise.all(cityData.map(async (entry) => (await City.fromJson(entry)).toJson()));
      return R.response(true,  result, res, 200);
