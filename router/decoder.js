@@ -13,7 +13,7 @@ router.post('/add', async(req, res) => {
         if(!Number(device) || !Number(identifier) || !location || !subscriber || !started || !finished || !remaining || !formula){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const  decoder = new Decoder(null, guid, device, identifier, location, subscriber, started, finished, remaining, updated, );
+        const  decoder = new Decoder(null, guid, device, identifier, location, subscriber, started, finished, remaining, formula, null, null, null, null, null );
 
         const entry = await decoder.save();
         return R.response(true, entry.toJson(), res, 200);

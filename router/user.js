@@ -89,23 +89,23 @@ router.put('/validate', async(req, res) => {
 
 router.put('/blocked', async(req, res) => {
     try {
-        const {managerGuid, userGuid} = req.body;
+        const {manager, user} = req.body;
 
-        if (!managerGuid || !userGuid){
+        if (!manager || !user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null, null);
+        const managerData = new User(null, manager, null, null, null, null, null, null, null, null, null, null, null);
         const existManager = await managerData.getByGuid();
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const partnerData = new User(null, userGuid, null,null, null, null, null, null, null, null, null, null, null);
+        const partnerData = new User(null, user, null,null, null, null, null, null, null, null, null, null, null);
         const existPartner = await partnerData.getByGuid();
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
         if(Number(existPartner.createdBy.id) === Number(existManager.id)){
-            const updatePartner = await User.blocked(userGuid);
+            const updatePartner = await User.blocked(user);
             return R.response(true, updatePartner.toJson(), res, 200);
         }
         return R.handleError(res, 'Permission_denied', 403);
@@ -169,7 +169,7 @@ router.post('/add', async(req, res) => {
         const contactData = new Contact(null, contact, null, null, null, null, null, null, null, null)
         const contactResponse = await  contactData.getByGuid();
         if (!contactResponse){
-            return R.handleError(res, 'contac_not_found', 404);
+            return R.handleError(res, 'contact_not_found', 404);
         }
 
         let createdByResponse;
