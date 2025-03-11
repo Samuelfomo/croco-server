@@ -53,7 +53,7 @@ async function main() {
     }
 
     setTimeout(() => {
-        console.clear();
+        // console.clear();
         console.log('Serveur opérationnel. Prêt à recevoir des requêtes...');
     }, 1000);
 }

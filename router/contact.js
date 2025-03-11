@@ -35,6 +35,25 @@ router.post('/add', async(req, res) => {
         // return R.handleError(res, "internal_server_error", 500);
     }
 })
+router.put('/check', async(req, res) => {
+    try {
+        const {mobile} = req.body;
+        if (!mobile){
+          return R.handleError(res, W.errorMissingFields, 400);
+        }
+        if (!V.mobile(mobile)){
+            return R.handleError(res, "invalid_mobile_format", 400);
+        }
+        const entry = await Contact.getContactByMobile(mobile);
+        if(!entry){
+            return R.response(false, 'contact_not_found', res, 404)
+        }
+        return R.response(true, entry.toJson(), res, 200);
+    }
+    catch (error){
+        return R.handleError(res, error.message, 500);
+    }
+})
 
 router.use((req, res) => {
     if (req.method === 'GET') {

@@ -14,7 +14,10 @@ router.post('/add', async(req, res) => {
             return R.handleError(res, W.errorMissingFields, 400)
         }
         const contactResponse = await Contact.getContact(contact);
-        const  subscriber = new Subscriber(null, guid, contactResponse.id);
+        if (!contactResponse){
+            return R.response(false, 'contact_not_found', res, 404);
+        }
+        const subscriber = new Subscriber(null, guid, contactResponse.id);
         const entry = await subscriber.save();
         return R.response(true, entry.toJson(), res, 200);
     }

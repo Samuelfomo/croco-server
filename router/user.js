@@ -18,14 +18,14 @@ router.put('/login', async(req, res) => {
         }
 
         if (code.toString().length!==6 || pin.toString().length !==4){
-            return R.handleError(res, 'User_Authentication_failed_by_entry', 401)
+            return R.handleError(res, 'user_authentication_failed_by_entry', 401)
         }
         const entry = await User.verify(code, pin);
         if(!entry){
-            return R.response(false, 'User_Authentication_failed', res, 401)
+            return R.response(false, 'user_authentication_failed', res, 401)
         }
         if(entry.blocked === true || entry.activated === false || entry.deleted === true){
-            return R.response(false, 'User_Authentication_failed', res, 401)
+            return R.response(false, 'user_authentication_failed', res, 401)
         }
         // const terminalData = new Terminal(null, null, userId, entry.id);
         // const terminal = await terminalData.save()
