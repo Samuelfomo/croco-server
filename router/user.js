@@ -60,24 +60,23 @@ router.put('/check', async(req, res) => {
 });
 router.put('/validate', async(req, res) => {
     try {
-        const {managerGuid, userGuid} = req.body;
+        const {manager, user} = req.body;
 
-        if (!managerGuid || !userGuid){
+        if (!manager || !user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
-        const managerData = new User(null, managerGuid, null, null, null, null, null, null, null, null, null, null, null);
-        const existManager = await managerData.getByGuid();
+        const existManager = await User.getManager(manager);
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null, null);
-        const existPartner = await partnerData.getByGuid();
+        const existPartner = await User.getUser(user)
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        if(Number(existPartner.createdBy.id) === Number(existManager.id)){
-            const updatePartner = await User.update(userGuid);
+        console.log(existManager)
+        if(Number(existPartner.createdBy) === Number(existManager.id)){
+            const updatePartner = await User.update(user);
             return R.response(true, updatePartner.toJson(), res, 200);
         }
         return R.handleError(res, 'Permission_denied', 403);
@@ -94,19 +93,45 @@ router.put('/blocked', async(req, res) => {
         if (!manager || !user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const managerData = new User(null, manager, null, null, null, null, null, null, null, null, null, null, null);
-        const existManager = await managerData.getByGuid();
+        const existManager = await User.getManager(manager)
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const partnerData = new User(null, user, null,null, null, null, null, null, null, null, null, null, null);
-        const existPartner = await partnerData.getByGuid();
+        const existPartner = await User.getUser(user);
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        if(Number(existPartner.createdBy.id) === Number(existManager.id)){
+        if(Number(existPartner.createdBy) === Number(existManager.id)){
             const updatePartner = await User.blocked(user);
             return R.response(true, updatePartner.toJson(), res, 200);
+        }
+        return R.handleError(res, 'Permission_denied', 403);
+    }
+    catch (error){
+        return R.handleError(res, error.message, 500);
+    }
+});
+router.put('/removed', async(req, res) => {
+    try {
+        const {manager, user} = req.body;
+
+        if (!manager || !user){
+            return R.handleError(res, W.errorMissingFields, 400);
+        }
+        const existManager = await User.getManager(manager);
+        if(!existManager){
+            return R.handleError(res, 'manager_not_found', 404);
+        }
+        const existPartner = await User.getUser(user)
+        if(!existPartner){
+            return R.handleError(res, 'partner_not_found', 404);
+        }
+        if(Number(existPartner.createdBy) === Number(existManager.id)){
+            const removed = await User.removed(user);
+            if (removed === 0){
+                return R.response(false, 'error_during_removed', res, 500);
+            }
+            return R.response(true,'user_deleted_successfully', res, 200);
         }
         return R.handleError(res, 'Permission_denied', 403);
     }
@@ -117,31 +142,30 @@ router.put('/blocked', async(req, res) => {
 
 router.put('/delete', async(req, res) => {
     try {
-        const {userGuid} = req.body;
+        const {user} = req.body;
 
-        if (!userGuid){
+        if (!user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const partnerData = new User(null, userGuid, null, null, null, null, null, null, null, null, null, null, null);
-        const existPartner = await partnerData.getByGuid();
+        const existPartner = await User.getUser(user);
         if(!existPartner){
             return R.handleError(res, 'Permission_denied', 403);
         }
-            const updatePartner = await User.deleted(userGuid);
+            const updatePartner = await User.deleted(user);
             return R.response(true, updatePartner.toJson(), res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
     }
 });
-router.get('/mypartner', async(req, res) => {
+router.put('/mypartner', async(req, res) => {
     try {
-        const {managerGuid} = req.body;
+        const {manager} = req.body;
 
-        if (!managerGuid){
+        if (!manager){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const managerData = new User(null, managerGuid, null,null, null, null, null, null, null, null, null, null, null);
+        const managerData = new User(null, manager, null,null, null, null, null, null, null, null, null, null, null);
         const existManager = await managerData.getByGuid();
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
@@ -188,8 +212,7 @@ router.post('/add', async(req, res) => {
         }
         console.log('createdByResponse is :', createdByResponse);
 
-        const profilData = new Profil(null, null, profil, null)
-        const profilResponse = await profilData.getByGuid();
+        const profilResponse = await Profil.getByGuid();
 
         if (!profilResponse){
             return R.handleError(res, 'profil_not_found', 404);
@@ -203,10 +226,29 @@ router.post('/add', async(req, res) => {
     catch (error){
         return R.handleError(res, error.message, 500);
     }
+});
+
+router.put('/createdPin', async(req, res) =>{
+   try {
+       const {user, pin} = req.body;
+       if (!user || !pin){
+           return R.handleError(res, W.errorMissingFields, 400);
+       }
+       const existUser = await User.getUser(user);
+       if (!user){
+           return R.response(false, 'user_not_found', res, 404);
+       }
+       const response = await User.createdPin(user,pin);
+       if(!response){
+           return R.response(false, 'user_created_pin_failed', res, 500);
+       }
+       return R.response(true, response.toJson(), res, 200);
+   }catch (error){
+       return R.handleError(res, error.message, 500);
+   }
 })
 
 module.exports = router;
-
 
 // const express = require('express');
 // const path = require('path');

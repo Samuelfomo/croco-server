@@ -17,10 +17,10 @@ router.post('/add', async(req, res) => {
 
         const countryData = new Country(null, null, null, null, null, country, null)
         const countryResponse = await  countryData.getByGuid();
-        // const countryResult = countryResponse.toJson()
         if (!countryResponse){
             return R.handleError(res, 'country_not_found', 404)
         }
+        console.log("countryResponse :", countryResponse)
         const  city = new City(null, guid, name, countryResponse);
        const entry = await city.save();
         return R.response(true, entry.toJson(), res, 200);
