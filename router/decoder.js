@@ -65,7 +65,8 @@ router.put('/search', async(req, res) => {
             if (!contactResponse){
                 return R.response(false, 'contact_not_found', res, 404);
             }
-            const subscriberResponse = await Subscriber.getSubscriber(contactResponse.guid);
+
+            const subscriberResponse = await Subscriber.getSubscriberByContactId(contactResponse.id);
             if (!subscriberResponse){
                 return R.response(false, 'subscriber_not_found', res, 404);
             }

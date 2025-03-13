@@ -74,9 +74,10 @@ main().then(r => {
     const statusRoute = require(path.join(paths.ROUTER, 'status'));
     const OptionRoute = require(path.join(paths.ROUTER, 'option'));
     const FormulaRoute = require(path.join(paths.ROUTER, 'formula'));
-    const RequirementRoute = require(path.join(paths.ROUTER, 'requiement'));
+    const RequirementRoute = require(path.join(paths.ROUTER, 'requirement'));
     const SubscriberRoute = require(path.join(paths.ROUTER, 'subscriber'));
     const DecoderRoute = require(path.join(paths.ROUTER, 'decoder'));
+    const SubscriptionRoute = require(path.join(paths.ROUTER, 'subscription'));
     const AuthRoute = require(path.join(paths.ROUTER, 'auth'));
 
     app.use("/lexicon", lexiconRoute);
@@ -88,9 +89,10 @@ main().then(r => {
     app.use("/status", statusRoute);
     app.use("/option", verifyToken, OptionRoute);
     app.use("/formula", verifyToken, FormulaRoute);
-    app.use("/requiement", verifyToken, RequirementRoute);
+    app.use("/requirement", verifyToken, RequirementRoute);
     app.use("/subscriber", verifyToken, SubscriberRoute);
     app.use("/decoder", verifyToken, DecoderRoute);
+    app.use("/subscription", verifyToken, SubscriptionRoute);
     app.use("/token", AuthRoute);
 });
 

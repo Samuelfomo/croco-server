@@ -2,7 +2,6 @@ const express = require('express');
 const {User} = require("../lib/class/User");
 const {Profil} = require("../lib/class/Profil");
 const {Contact} = require("../lib/class/Contact");
-// const {Terminal} = require("../lib/class/Terminal");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 
@@ -165,8 +164,7 @@ router.put('/mypartner', async(req, res) => {
         if (!manager){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const managerData = new User(null, manager, null,null, null, null, null, null, null, null, null, null, null);
-        const existManager = await managerData.getByGuid();
+        const existManager = await User.getByGuid(manager);
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
@@ -184,14 +182,13 @@ router.put('/mypartner', async(req, res) => {
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, profil, contact, manager, name} = req.body;
+        const {guid, contact, manager, name} = req.body;
 
         if (!contact || !name){
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
-        const contactData = new Contact(null, contact, null, null, null, null, null, null, null, null)
-        const contactResponse = await  contactData.getByGuid();
+        const contactResponse = await Contact.getByGuid(contact);
         if (!contactResponse){
             return R.handleError(res, 'contact_not_found', 404);
         }
@@ -199,8 +196,7 @@ router.post('/add', async(req, res) => {
         let createdByResponse;
 
         if(manager){
-            const createdByData = new User(null, manager, null,null, null, null, null, null, null, null, null, null, null)
-            createdByResponse = await  createdByData.getByGuid();
+            createdByResponse = await User.getByGuid(manager);
             if (!createdByResponse){
                 return R.handleError(res, 'manager_not_found', 404);
             }
@@ -219,7 +215,6 @@ router.post('/add', async(req, res) => {
         }
 
         const userData = new User(null, guid, name,null, null, profilResponse, contactResponse, false, false, createdByResponse, false, false, null);
-
         const entry = await userData.save();
         return R.response(true, entry.toJson(), res, 200);
     }
@@ -235,7 +230,7 @@ router.put('/createdPin', async(req, res) =>{
            return R.handleError(res, W.errorMissingFields, 400);
        }
        const existUser = await User.getUser(user);
-       if (!user){
+       if (!existUser){
            return R.response(false, 'user_not_found', res, 404);
        }
        const response = await User.createdPin(user,pin);
@@ -249,70 +244,3 @@ router.put('/createdPin', async(req, res) =>{
 })
 
 module.exports = router;
-
-// const express = require('express');
-// const path = require('path');
-// const paths = require('../config/paths');
-// const {User} = require("../lib/class/User");
-// const {Profil} = require("../lib/class/Profil");
-// const R = require(path.join(paths.TOOL_DIR, 'Reply'));
-// const W = require(path.join(paths.TOOL_DIR, 'Watcher'));
-//
-// const router = express.Router();
-//
-// router.put('/check', async(req, res) => {
-//     try {
-//         const {createdBy} = req.body;
-//         const userAdmin = new User(null, createdBy, null, null, null, null, null, null, null, null, null);
-//         const existCreatedBy = await userAdmin.getUserManager();
-//         if(!existCreatedBy){
-//             return R.handleError(res, 'user_not_found', 404);
-//         }
-//
-//         return R.response(true, existCreatedBy.toJson(), res, 200);
-//     }
-//     catch (error){
-//         return R.handleError(res, error.message, 500);
-//     }
-// })
-//
-// router.post('/add', async(req, res) =>{
-//     try {
-//         const {guid, profil, contact, createdBy} = req.body;
-//
-//         if (!contact || !createdBy){
-//             return R.handleError(res, W.errorMissingFields, 400);
-//         }
-//         const profilData = new Profil(null, null, profil, null)
-//         const profilResponse = await profilData.getByGuid();
-//
-//         if (!profilResponse){
-//             return R.handleError(res, 'profil_not_found', 404);
-//         }
-//
-//         const userData = new User(null, guid, null, null, profilResponse, contact, null, null, createdBy, null, null);
-//         const userResponse = userData.save();
-//         return R.response(true, userResponse.toJson(), res, 200);
-//     }
-//     catch (error){
-//         return R.handleError(res, error.message, 500);
-//     }
-// })
-//
-// router.put('/login', async(req, res) => {
-//     try {
-//         const {code, pin} = req.body;
-//
-//         if(!code || !code){
-//             return R.handleError(res, W.errorMissingFields, 400)
-//         }
-//         const  user = new  User(code, pin, null, null, null, null);
-//         const entry = await user.verify()
-//         return R.response(true, entry.toJson(), res, 200);
-//     }
-//     catch (error){
-//         return R.handleError(res, "internal_server_error", 500);
-//     }
-// })
-//
-// module.exports = router;
