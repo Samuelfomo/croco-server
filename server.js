@@ -31,6 +31,7 @@ const LexiconModel = require(path.join(paths.MDL_DIR, 'LexiconModel'));
 const TerminalModel = require(path.join(paths.MDL_DIR, 'TerminalModel'));
 const AccountModel = require(path.join(paths.MDL_DIR, 'AccountModel'));
 const PayementModel = require(path.join(paths.MDL_DIR, 'PayementModel'));
+// const StatusOperationModel = require(path.join(paths.MDL_DIR, 'StatusOperationModel'));
 
 async function main() {
     try {
@@ -50,6 +51,7 @@ async function main() {
         await TerminalModel.initialize();
         await AccountModel.initialize();
         await PayementModel.initialize();
+        // await StatusOperationModel.initialize();
 
         console.log('Application initialized successfully');
     } catch (error) {
@@ -78,6 +80,7 @@ main().then(r => {
     const SubscriberRoute = require(path.join(paths.ROUTER, 'subscriber'));
     const DecoderRoute = require(path.join(paths.ROUTER, 'decoder'));
     const SubscriptionRoute = require(path.join(paths.ROUTER, 'subscription'));
+    const OperationRoute = require(path.join(paths.ROUTER, 'operation'));
     const AuthRoute = require(path.join(paths.ROUTER, 'auth'));
 
     app.use("/lexicon", lexiconRoute);
@@ -86,13 +89,14 @@ main().then(r => {
     app.use("/user", verifyToken, UserRoute);
     app.use("/country", verifyToken, CountryRoute);
     app.use("/city", verifyToken, CityRoute);
-    app.use("/status", statusRoute);
+    app.use("/status", verifyToken, statusRoute);
     app.use("/option", verifyToken, OptionRoute);
     app.use("/formula", verifyToken, FormulaRoute);
     app.use("/requirement", verifyToken, RequirementRoute);
     app.use("/subscriber", verifyToken, SubscriberRoute);
     app.use("/decoder", verifyToken, DecoderRoute);
     app.use("/subscription", verifyToken, SubscriptionRoute);
+    app.use("/operation", verifyToken, OperationRoute);
     app.use("/token", AuthRoute);
 });
 

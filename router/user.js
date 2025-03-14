@@ -73,7 +73,7 @@ router.put('/validate', async(req, res) => {
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        console.log(existManager)
+        console.log(existManager.id, existPartner.createdBy)
         if(Number(existPartner.createdBy) === Number(existManager.id)){
             const updatePartner = await User.update(user);
             return R.response(true, updatePartner.toJson(), res, 200);
@@ -200,13 +200,15 @@ router.post('/add', async(req, res) => {
             if (!createdByResponse){
                 return R.handleError(res, 'manager_not_found', 404);
             }
+            if (createdByResponse.profil.reference !== "manager" && createdByResponse.profil.reference !== "partner"){
+                return R.handleError(res, 'permission_denied', 401);
+            }
         }else {
             createdByResponse = await User.getDefaultManager();
             if(!createdByResponse){
                 return R.response(false, 'default_manager_don\'t_found', res, 404);
             }
         }
-        console.log('createdByResponse is :', createdByResponse);
 
         const profilResponse = await Profil.getByGuid();
 
@@ -232,6 +234,9 @@ router.put('/createdPin', async(req, res) =>{
        const existUser = await User.getUser(user);
        if (!existUser){
            return R.response(false, 'user_not_found', res, 404);
+       }
+       if(existUser.activated !== true){
+           return R.response(false, 'user_activation_required', res, 401);
        }
        const response = await User.createdPin(user,pin);
        if(!response){
