@@ -41,8 +41,29 @@ router.get("/all", async(req, res)=>{
     if (!statusResponse){
         return R.response(false, 'status_not_found', res, 404);
     }
-    const result = await Promise.all(statusResponse);
+    const result = await Promise.all(statusResponse.map(async (entry) =>(await Status.fromJson(entry)).toJson()));
     return R.response(true, result, res, 200);
+})
+
+router.put('/statusOp', async(req, res) =>{
+    try {
+        const {operation} = req.body;
+        if (!Number(operation)){
+            return R.handleError(res, W.errorMissingFields, 400);
+        }
+        const operationId = await Operation.getByGuid(operation)
+        if (!operationId){
+            return R.response(false, 'operation_doesn\'t_exist', res, 404);
+        }
+        const statusOperation = await Status.getByOp(operationId.id);
+        if (!statusOperation){
+            return R.response(false, 'status_operation_not_found', res, 404);
+        }
+        const result = await Promise.all(statusOperation.map(async (entry) =>(await Status.fromJson(entry)).toJson()));
+        return R.response(true, result, res, 200);
+    }catch (error){
+        return R.handleError(res, error.message, 500);
+    }
 })
 
 module.exports = router;

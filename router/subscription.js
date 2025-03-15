@@ -14,30 +14,29 @@ router.post('/new', async(req, res) =>{
     try {
     const {guid, reference, duration, decoder, formula, options, user} = req.body;
 
-    if (!reference || !formula || !duration || !decoder || !user){
+    if (!Number(reference) || !formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
     }
     const decoderData = await Decoder.getByGuid(decoder);
     if (!decoderData){
         return R.response(false, 'decoder_search_error', res, 404);
     }
-        console.log("decoderData is :", decoderData);
+
     const subscriberData = await Subscriber.getSubscriber(decoderData.subscriber.code)
    if (!subscriberData){
        return R.response(false, 'subscriber_search_error', res, 404);
    }
-   console.log("subscriberData is:", subscriberData);
 
    const oldFormulaData = await Formula.getFormula(decoderData.formula.guid);
    if (!oldFormulaData){
        return R.response(false, 'old_formula_search_error', res, 404);
    }
-    console.log("oldFormulaData is:", oldFormulaData);
+
     const formulaData = await Formula.getFormulaByCode(formula);
     if (!formulaData){
         return R.response(false, 'formula_search_error', res, 404);
     }
-    console.log("formulaData is :", formulaData)
+
         let optionData = options;
         if(options && options.trim()){
              optionData = await Option.getByCode(options);
@@ -45,16 +44,15 @@ router.post('/new', async(req, res) =>{
                 return R.response(false, 'option_search_error', res, 404);
             }
         }
-        console.log("optionData is:", optionData)
+
         const userData = await User.getUser(user);
         if (!userData){
             return R.response(false, 'user_search_error', res, 404);
         }
-        console.log("userData is :", userData)
 
-        const amount = formulaData.amount + optionData.amount;
+        const amount = (formulaData.amount + optionData.amount) * duration;
         console.log("amount is :", amount);
-        const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, optionData.amount, null, null, decoderData.id, subscriberData.id, formulaData.id, oldFormulaData.id, optionData.id, userData.id, null )
+        const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, optionData.amount, null, null, decoderData.id, subscriberData.id, formulaData.id, oldFormulaData.id, optionData.id, userData.id, null, null )
         const subscriptionResponse = await subscriptionData.save();
         if (!subscriptionResponse){
             return R.response(false, 'error_during_saved', res, 500);
