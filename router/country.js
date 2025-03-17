@@ -18,6 +18,25 @@ router.post('/add', async(req, res) => {
         let entry;
         entry = await country.save();
         return R.response(true, entry.toJson(), res, 200);
+        /*
+        const  country = new Country(alpha2, alpha3, dialcode, fr, en, guid, null);
+        try {
+            const entry = await country.save();
+            return R.response(true, entry.toJson(), res, 200);
+        } catch (error){
+            if (error.type === W.duplicate && error.response) {
+                // return R.response(false, W.duplicate, error.response, 400)
+                // Retourner les données existantes avec le statut d'erreur
+                return res.status(400).json({
+                    status: false,
+                    message: W.duplicate,
+                    response: error.response.toJson()
+                });
+            }
+            // Autres erreurs
+            return R.handleError(res, error.message, 500);
+        }
+         */
     }
     catch (error){
         return R.handleError(res, error.message, 500);

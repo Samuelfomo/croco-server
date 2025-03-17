@@ -4,6 +4,7 @@ const {Profil} = require("../lib/class/Profil");
 const {Contact} = require("../lib/class/Contact");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
+const V = require("../lib/shared/utils/validation")
 
 const router = express.Router();
 
@@ -73,7 +74,6 @@ router.put('/validate', async(req, res) => {
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        console.log(existManager.id, existPartner.createdBy)
         if(Number(existPartner.createdBy) === Number(existManager.id)){
             const updatePartner = await User.update(user);
             return R.response(true, updatePartner.toJson(), res, 200);
@@ -246,6 +246,28 @@ router.put('/createdPin', async(req, res) =>{
    }catch (error){
        return R.handleError(res, error.message, 500);
    }
+});
+router.put('/byContact', async(req, res) =>{
+    try {
+        const {contact} = req.body;
+        if (!Number(contact)){
+            return R.handleError(res, W.errorMissingFields, 400);
+        }
+        if (!V.mobile(contact)){
+            return R.handleError(res, 'invalid_mobile_format', 401);
+        }
+        const response = await Contact.getContactByMobile(contact);
+        if (!response){
+            return R.response(false, 'contact_not_found', res, 404);
+        }
+        const userResponse = await User.getByMobile(response.id);
+        if (!userResponse){
+            return R.response(false, 'user_not_found', res, 404);
+        }
+        return R.response(true, userResponse.toJson(), res, 200);
+    } catch (error){
+        return R.handleError(res, error.message, 500);
+    }
 })
 
 module.exports = router;

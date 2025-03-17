@@ -11,10 +11,12 @@ const router = express.Router();
 router.post('/add', async(req, res) => {
     try {
         const {guid, firstname, lastname, city, location, language, gender, mobile, email} = req.body;
-        if (!lastname || !city|| !language || !gender || !mobile || !email){
+        if (!lastname || !city|| !language || !gender || !mobile){
           return R.handleError(res, W.errorMissingFields, 400);
         }
-        if (!V.email(email)){
+
+
+        if (email && !V.email(email)){
             return R.handleError(res, "invalid_email_format", 400);
         }
         if (!V.mobile(mobile)){

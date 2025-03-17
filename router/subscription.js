@@ -17,7 +17,7 @@ router.post('/new', async(req, res) =>{
     if (!Number(reference) || !formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
     }
-    const decoderData = await Decoder.getByGuid(decoder);
+    const decoderData = await Decoder.getByDevice(decoder);
     if (!decoderData){
         return R.response(false, 'decoder_search_error', res, 404);
     }
@@ -27,7 +27,7 @@ router.post('/new', async(req, res) =>{
        return R.response(false, 'subscriber_search_error', res, 404);
    }
 
-   const oldFormulaData = await Formula.getFormula(decoderData.formula.guid);
+   const oldFormulaData = await Formula.getFormula(decoderData.formula.code);
    if (!oldFormulaData){
        return R.response(false, 'old_formula_search_error', res, 404);
    }
