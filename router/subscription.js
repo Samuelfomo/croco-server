@@ -19,7 +19,7 @@ router.post('/new', async(req, res) =>{
     }
     const decoderData = await Decoder.getByDevice(decoder);
     if (!decoderData){
-        return R.response(false, 'decoder_search_error', res, 404);
+        return R.response(false, 'decoder_search_not_found', res, 404);
     }
 
     const subscriberData = await Subscriber.getSubscriber(decoderData.subscriber.code)
@@ -54,6 +54,7 @@ router.post('/new', async(req, res) =>{
         console.log("amount is :", amount);
         const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, optionData.amount, null, null, decoderData.id, subscriberData.id, formulaData.id, oldFormulaData.id, optionData.id, userData.id, null, null )
         const subscriptionResponse = await subscriptionData.save();
+
         if (!subscriptionResponse){
             return R.response(false, 'error_during_saved', res, 500);
         }
