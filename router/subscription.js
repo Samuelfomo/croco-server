@@ -2,6 +2,7 @@ const express = require('express');
 const {Subscription} = require("../lib/class/Subscription");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
+const V = require("../lib/shared/utils/validation");
 const {Decoder} = require("../lib/class/Decoder");
 const {Formula} = require("../lib/class/Formula");
 const {Option} = require("../lib/class/Option");
@@ -18,8 +19,11 @@ router.post('/new', async(req, res) =>{
     try {
     const {guid, reference, duration, decoder, formula, options, user, mobile} = req.body;
 
-    if (!Number(reference) || !formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
+    if (!formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
+    }
+    if (!V.device(decoder)){
+        return R.handleError(res, 'entry_detected_error', 400);
     }
     const decoderData = await Decoder.getByDevice(decoder);
     if (!decoderData){
@@ -86,7 +90,7 @@ router.post('/new', async(req, res) =>{
         if (!operation){
             return R.response(false, 'operation_search_error', res, 404);
         }
-        const status = await Status.getStatus(1);
+        const status = await Status.getStatus(operation.id);
         // const status = await Status.getStatus(operation.id);
         if (!status){
             return R.response(false, 'status_search_error', res, 404);
@@ -95,7 +99,7 @@ router.post('/new', async(req, res) =>{
         const payement = new Payement(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null, mobile, null);
          payementResponse = await payement.save();
          if(!payementResponse){
-             const statusFailed = await Status.getStatusFailed(1);
+             const statusFailed = await Status.getStatusFailed(operation.id);
              subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, statusFailed.id);
              if (!subscriptionResponse){
                  return R.response(false, 'subscription_update_status_error', res, 500);
@@ -104,7 +108,16 @@ router.post('/new', async(req, res) =>{
          const newBalance = payementResponse.old_balance - amount;
          const newAccountBalance = await Account.updateBalance(payementResponse.account, newBalance);
          if (newAccountBalance === false){
-             return R.response(false, 'operation_for_created_new_balance_failed', res, 500);
+             // return R.response(false, 'operation_for_created_new_balance_failed', res, 500);
+             const payementFailed = await Payement.updatedStatus(subscriptionResponse.id, status.nextState);
+             if(!payementFailed){
+                 return R.response(false, 'payement_update_status_error', res, 500);
+             }
+             const statusFailed = await Status.getStatusFailed(operation.id);
+             subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, statusFailed.id);
+             if (!subscriptionResponse){
+                 return R.response(false, 'subscription_update_status_error', res, 500);
+             }
          }
          // const nextStatus = await Status.getNextStatus(subscriptionResponse.status);
          // console.log(nextStatus.nextState, nextStatus)
@@ -120,4 +133,76 @@ router.post('/new', async(req, res) =>{
     }
 })
 
+router.put('/myActivity', async (req, res) => {
+    try {
+        const { user, dateStart, dateEnd } = req.body;
+
+        if (!Number(user) || !dateStart) {
+            return R.handleError(res, W.errorMissingFields, 400);
+        }
+
+        let dateFinish = dateEnd || dateStart;
+
+        // Vérification du format des dates
+        if (!V.date(dateStart) || !V.date(dateFinish)) {
+            return R.handleResponse(res, 'incorrect_date_format', 400);
+        }
+
+        // Comparaison des dates
+        if (new Date(dateFinish) < new Date(dateStart)) {
+            return R.handleResponse(res, 'date_end_before_start', 400);
+        }
+
+        const userId = await User.getUser(user);
+        const userResponse = await User.fromJson(userId);
+
+        if (!userId) {
+            return R.response(false, 'user_not_found', res, 404);
+        }
+
+        const userActivity = await Subscription.getActivityUser(userResponse.id, dateStart, dateFinish);
+
+        if (!userActivity) {
+            return R.response(false, 'user_activity_not_found', res, 404);
+        }
+
+        const result = await Promise.all(userActivity.map(async (item) => (await Subscription.fromJson(item)).toJson()));
+
+        return R.response(true, result, res, 200);
+    } catch (error) {
+        return R.handleError(res, error.message, 500);
+    }
+});
+
 module.exports = router;
+
+// router.put('/myActivity', async (req, res) => {
+//     try {
+//         const {user, dateStart, dateEnd} = req.body;
+//         if (!Number(user) || !dateStart){
+//             return R.handleError(res, W.errorMissingFields, 400);
+//         }
+//         let dateFinish = dateEnd;
+//         if(!dateEnd){
+//             dateFinish = dateStart;
+//         }
+//         if (!V.date(dateStart) || !V.date(dateFinish)){
+//             return R.handleResponse(res, 'incorrect_date_format', 400);
+//         }
+//         const userId = await User.getUser(user);
+//         const userResponse = await User.fromJson(userId);
+//         if (!userId){
+//             return R.response(false, 'user_not_found', res, 404);
+//         }
+//         const userActivity = await Subscription.getActivityUser(userResponse.id, dateStart, dateFinish);
+//         if (!userActivity){
+//             return R.response(false, 'user_activity_not_found', res, 404);
+//         }
+//
+//         const result = await Promise.all(userActivity.map(async (item)=>(await Subscription.fromJson(item)).toJson()));
+//         return R.response(true, result, res, 200);
+//     }
+//     catch (error){
+//         return R.handleError(res, error.message, 500);
+//     }
+// });
