@@ -13,7 +13,7 @@ router.post('/add', async(req, res) => {
         if(!contact || !Number(contact)){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const contactResponse = await Contact.getContact(contact);
+        const contactResponse = await Contact.getContactByGuid(contact);
         if (!contactResponse){
             return R.response(false, 'contact_not_found', res, 404);
         }

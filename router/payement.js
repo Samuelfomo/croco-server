@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post('/add', async(req, res) => {
     try {
-        const {amount, } = req.body;
+        const {amount,  } = req.body;
     }
     catch (error){
         return R.handleError(res, error.message, 500);

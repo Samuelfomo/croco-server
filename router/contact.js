@@ -28,7 +28,8 @@ router.post('/add', async(req, res) => {
         if (!cityResponse){
             return R.handleError(res, 'city_not_found', 404);
         }
-        const  contact = new Contact(null, guid, firstname, lastname, location, language, gender, mobile, email, cityResponse);
+        const  contact = new Contact(null, guid, firstname, lastname, location, language, gender, mobile, email && email.trim() ? email.trim() : null, cityResponse);
+        console.log(contact);
         const entry = await contact.save();
         return R.response(true, entry.toJson(), res, 200);
     }

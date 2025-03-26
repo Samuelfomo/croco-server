@@ -7,11 +7,11 @@ const {Decoder} = require("../lib/class/Decoder");
 const {Formula} = require("../lib/class/Formula");
 const {Option} = require("../lib/class/Option");
 const {User} = require("../lib/class/User");
-const {Subscriber} = require("../lib/class/Subscriber");
 const {Account} = require("../lib/class/Account");
 const {Payement} = require("../lib/class/Payement");
 const {Status} = require("../lib/class/Status");
 const {Operation} = require("../lib/class/Operation");
+const {Contact} = require("../lib/class/Contact");
 
 const router = express.Router();
 
@@ -25,12 +25,13 @@ router.post('/new', async(req, res) =>{
     if (!V.device(decoder)){
         return R.handleError(res, 'entry_detected_error', 400);
     }
+
     const decoderData = await Decoder.getByDevice(decoder);
     if (!decoderData){
         return R.response(false, 'decoder_search_not_found', res, 404);
     }
 
-    const subscriberData = await Subscriber.getSubscriber(decoderData.subscriber.code)
+    const subscriberData = await Contact.getContactByGuid(decoderData.subscriber.code)
    if (!subscriberData){
        return R.response(false, 'subscriber_search_error', res, 404);
    }
@@ -45,20 +46,50 @@ router.post('/new', async(req, res) =>{
         return R.response(false, 'formula_search_error', res, 404);
     }
 
-        let optionData = options;
-        if(options && options.trim()){
-             optionData = await Option.getByCode(options);
-            if (!optionData){
-                return R.response(false, 'option_search_error', res, 404);
+        // let optionData = options;
+        // if(options && options.trim()){
+        //      optionData = await Option.getByCode(options);
+        //     if (!optionData){
+        //         return R.response(false, 'option_search_error', res, 404);
+        //     }
+        // }
+
+        let optionData = "";
+        let optionsArray = [];
+        let totalOptionAmount = 0;
+
+        if (options) {
+            if (Array.isArray(options)) {
+                optionsArray = options;
+            } else if (typeof options === "string") {
+                optionsArray = options.split(",");
+            } else {
+                return R.response(false, "Invalid options format", res, 400);
             }
         }
+
+        // ✅ Vérification que toutes les options existent
+        let validOptions = [];
+        for (let optionCode of optionsArray) {
+            const optionResult = await Option.getByCode(optionCode.trim());
+            if (!optionResult) {
+                return R.response(false, `Option "${optionCode}" not found`, res, 404);
+            }
+            validOptions.push(optionResult.id);
+            totalOptionAmount += optionResult.amount;  // Ajoute le montant de l'option
+        }
+
+        // ✅ Convertit la liste d'IDs en string "1,2,3"
+        optionData = validOptions.join(",");
 
         const userData = await User.getUser(user);
         if (!userData){
             return R.response(false, 'user_search_error', res, 404);
         }
 
-        const amount = (formulaData.amount + optionData.amount) * duration;
+        const amount = (formulaData.amount + totalOptionAmount) * duration;
+
+        console.log("amount is:", amount,"optionData is:", optionData);
 
         const account = await Account.getAmount(userData.id);
         if (!account){
@@ -67,6 +98,8 @@ router.post('/new', async(req, res) =>{
         if (account.balance < amount){
             return R.response(false, 'insufficient_credit_balance', res, 400);
         }
+
+        // section subscription
         let code;
         code = "SUBSCRIPTION";
         const operationData = await Operation.getOperationByCode(code);
@@ -79,7 +112,7 @@ router.post('/new', async(req, res) =>{
         }
 
         let subscriptionResponse;
-        const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, optionData.amount, statusValue.id, operationData.id, decoderData.id, subscriberData.id, formulaData.id, oldFormulaData.id, optionData.id, userData.id, null, null )
+        const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, totalOptionAmount, statusValue.id, operationData.id, decoderData.id, formulaData.id, oldFormulaData.id, optionData, userData.id, null, null )
         subscriptionResponse = await subscriptionData.save();
         if (!subscriptionResponse){
             return R.response(false, 'subscription_save_error', res, 500);
@@ -99,7 +132,7 @@ router.post('/new', async(req, res) =>{
         const payement = new Payement(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null, mobile, null);
          payementResponse = await payement.save();
          if(!payementResponse){
-             const statusFailed = await Status.getStatusFailed(operation.id);
+             const statusFailed = await Status.getStatusFailed(operationData.id);
              subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, statusFailed.id);
              if (!subscriptionResponse){
                  return R.response(false, 'subscription_update_status_error', res, 500);
@@ -108,19 +141,22 @@ router.post('/new', async(req, res) =>{
          const newBalance = payementResponse.old_balance - amount;
          const newAccountBalance = await Account.updateBalance(payementResponse.account, newBalance);
          if (newAccountBalance === false){
-             // return R.response(false, 'operation_for_created_new_balance_failed', res, 500);
-             const payementFailed = await Payement.updatedStatus(subscriptionResponse.id, status.nextState);
+             const payementStatusFailed = await Status.getStatusFailed(operation.id);
+             const payementFailed = await Payement.updatedStatus(subscriptionResponse.id, payementStatusFailed.id);
              if(!payementFailed){
                  return R.response(false, 'payement_update_status_error', res, 500);
              }
-             const statusFailed = await Status.getStatusFailed(operation.id);
+             const statusFailed = await Status.getStatusFailed(operationData.id);
              subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, statusFailed.id);
              if (!subscriptionResponse){
                  return R.response(false, 'subscription_update_status_error', res, 500);
              }
          }
-         // const nextStatus = await Status.getNextStatus(subscriptionResponse.status);
-         // console.log(nextStatus.nextState, nextStatus)
+         const sendSubscription = await Subscription.sender(decoder, formula, options, duration);
+         if (!sendSubscription){
+             return R.response(false, 'sender_subscription_error', res, 500);
+         }
+
           subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, subscriptionResponse.status.nextState);
           if (!subscriptionResponse){
               return R.response(false, 'subscription_update_next_status_error', res, 500);

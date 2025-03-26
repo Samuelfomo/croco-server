@@ -17,7 +17,6 @@ app.use(express.json());
 
 const CountryModel = require(path.join(paths.MDL_DIR, 'CountryModel'));
 const CityModel = require(path.join(paths.MDL_DIR, 'CityModel'));
-const SubscriberModel = require(path.join(paths.MDL_DIR, 'SubscriberModel'));
 const ContactModel = require(path.join(paths.MDL_DIR, 'ContactModel'));
 const OptionModel = require(path.join(paths.MDL_DIR, 'OptionModel'));
 const FormulaModel = require(path.join(paths.MDL_DIR, 'FormulaModel'));
@@ -38,7 +37,6 @@ async function main() {
         await CountryModel.initialize();
         await CityModel.initialize();
         await ContactModel.initialize();
-        await SubscriberModel.initialize();
         await OptionModel.initialize();
         await FormulaModel.initialize();
         await DecoderModel.initialize();
@@ -77,7 +75,6 @@ main().then(r => {
     const OptionRoute = require(path.join(paths.ROUTER, 'option'));
     const FormulaRoute = require(path.join(paths.ROUTER, 'formula'));
     const RequirementRoute = require(path.join(paths.ROUTER, 'requirement'));
-    const SubscriberRoute = require(path.join(paths.ROUTER, 'subscriber'));
     const DecoderRoute = require(path.join(paths.ROUTER, 'decoder'));
     const SubscriptionRoute = require(path.join(paths.ROUTER, 'subscription'));
     const OperationRoute = require(path.join(paths.ROUTER, 'operation'));
@@ -93,7 +90,6 @@ main().then(r => {
     app.use("/option", verifyToken, OptionRoute);
     app.use("/formula", verifyToken, FormulaRoute);
     app.use("/requirement", verifyToken, RequirementRoute);
-    app.use("/subscriber", verifyToken, SubscriberRoute);
     app.use("/decoder", verifyToken, DecoderRoute);
     app.use("/subscription", verifyToken, SubscriptionRoute);
     app.use("/operation", verifyToken, OperationRoute);

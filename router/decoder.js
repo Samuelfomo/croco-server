@@ -4,32 +4,33 @@ const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 const V = require("../lib/shared/utils/validation");
 const {Contact} = require("../lib/class/Contact");
-const {Subscriber} = require("../lib/class/Subscriber");
 const {Formula} = require("../lib/class/Formula");
-const {Country} = require("../lib/class/Country");
-const {City} = require("../lib/class/City");
 
 const router = express.Router();
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, device, identified, location, subscriber, started, finished,
+        const {guid, device, identified, location, subscriber, finished,
             remaining, formula} = req.body;
 
-        if(!Number(device) || !Number(identified) || !location || !subscriber || !started || !finished || !remaining || !formula){
+        if(!Number(device) || !Number(identified) || !location || !subscriber || !V.date(finished) || !formula){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const subscriberResponse = await Subscriber.getSubscriber(subscriber);
-        if (!subscriberResponse){
-            return R.response(false, 'subscriber_not_found', res, 404);
+        const contactData = await Contact.getContactByGuid(subscriber);
+        if(!contactData){
+            return R.handleError(res, "subscriber_not_found", 400)
         }
+
+        // const subscriberResponse = await Subscriber.getSubscriberByContactId(contactData.id);
+
         const formulaResponse = await Formula.getFormula(formula);
         if (!formulaResponse){
             return R.response(false, 'formula_not_found', res, 404);
         }
-        console.log("formulaResponse is :", formulaResponse)
-        console.log("subscriberResponse is :", subscriberResponse)
-        const  decoder = new Decoder(null, guid, device, identified, location, subscriberResponse.id, started, finished, remaining, formulaResponse.id, null, null, null, null, null );
+
+        const started = V.getStartDate(finished)
+
+        const  decoder = new Decoder(null, guid, device, identified, location, contactData.id, started, finished, remaining, formulaResponse.id, null, null, null, null, null );
 
         const entry = await decoder.save();
         return R.response(true, entry.toJson(), res, 200);
@@ -68,56 +69,56 @@ router.put('/search', async(req, res) => {
                 return R.response(false, 'contact_not_found', res, 404);
             }
 
-            const subscriberResponse = await Subscriber.getSubscriberByContactId(contactResponse.id);
-            if (!subscriberResponse){
-                return R.response(false, 'subscriber_not_found', res, 404);
-            }
-            console.log("subscriberResponse is :", subscriberResponse);
-            decoderResponse = await Decoder.search('id', subscriberResponse.id);
+            // const subscriberResponse = await Subscriber.getSubscriberByContactId(contactResponse.id);
+
+            decoderResponse = await Decoder.search('id', contactResponse.id);
         }else {
             decoderResponse = await Decoder.search(searchKey, searchValue);
             if(!decoderResponse){
+                const gateway = 1963;
                 // return R.response(false, 'decoder_searched_not_found', res, 404);
-               const decoderApiResponse = await Decoder.getApiResponse(searchValue)
+               const decoderApiResponse = await Decoder.getApiResponse(searchValue, gateway);
                 if (!decoderApiResponse){
                     return R.response(false, 'decoder_searched_not_found', res, 404);
                 }
-                const country = new Country(decoderApiResponse.subscriber.city.country.alpha2, decoderApiResponse.subscriber.city.country.alpha3, decoderApiResponse.subscriber.city.country.dialcode, decoderApiResponse.subscriber.city.country.fr, decoderApiResponse.subscriber.city.country.en, null, null)
-                const countryData = await country.save();
-                if (!countryData){
-                    return R.handleError(res, 'error_during_saving_of_country', 500);
-                }
-                console.log("countryData is :", countryData)
-
-                const city = new City(null, null, decoderApiResponse.subscriber.city.name, countryData);
-                const cityData = await city.save()
-                if (!cityData){
-                    return R.handleError(res, 'error_during_saving_of_city', 500);
-                }
-
-                const contact = new Contact(null, null, decoderApiResponse.subscriber.firstname, decoderApiResponse.subscriber.lastname, decoderApiResponse.subscriber.location, decoderApiResponse.subscriber.language, decoderApiResponse.subscriber.gender, decoderApiResponse.subscriber.mobile, decoderApiResponse.subscriber.email, cityData);
-                const contactData = await contact.savedByApi();
-                if (!contactData){
-                    return R.handleError(res, 'error_during_saving_contact_from_api', 500);
-                }
-                const subscriber = new Subscriber(null, null, contactData.id);
-                const subscriberData = await subscriber.savedByApi();
-                if (!subscriberData){
-                    return R.handleError(res, 'error_during_saving_subscriber_from_api', 500);
-                }
-                const formulaData = await Formula.getFormula(decoderApiResponse.formula.code);
-                if (!formulaData){
-                    return R.handleError(res, 'error_during_search_formula', 500);
-                }
-                console.log("formulaData is :", formulaData);
-                const decoder = new Decoder(null, null, decoderApiResponse.device, decoderApiResponse.identifier, decoderApiResponse.location, subscriberData.id, decoderApiResponse.started, decoderApiResponse.finished, decoderApiResponse.remaining, formulaData.id, null, decoderApiResponse.existed, decoderApiResponse.verified, decoderApiResponse.forbidden, decoderApiResponse.comment);
-                console.log("decoder is:", decoder);
-                decoderResponse = await decoder.save();
-                if (!decoderResponse){
-                    return R.response(false, 'decoder_api_saved_failed', res, 500);
-                }
+                // const country = new Country(decoderApiResponse.subscriber.city.country.alpha2, decoderApiResponse.subscriber.city.country.alpha3, decoderApiResponse.subscriber.city.country.dialcode, decoderApiResponse.subscriber.city.country.fr, decoderApiResponse.subscriber.city.country.en, null, null)
+                // const countryData = await country.save();
+                // if (!countryData){
+                //     return R.handleError(res, 'error_during_saving_of_country', 500);
+                // }
+                // console.log("countryData is :", countryData)
+                //
+                // const city = new City(null, null, decoderApiResponse.subscriber.city.name, countryData);
+                // const cityData = await city.save()
+                // if (!cityData){
+                //     return R.handleError(res, 'error_during_saving_of_city', 500);
+                // }
+                //
+                // const contact = new Contact(null, null, decoderApiResponse.subscriber.firstname, decoderApiResponse.subscriber.lastname, decoderApiResponse.subscriber.location, decoderApiResponse.subscriber.language, decoderApiResponse.subscriber.gender, decoderApiResponse.subscriber.mobile, decoderApiResponse.subscriber.email, cityData);
+                // const contactData = await contact.savedByApi();
+                // if (!contactData){
+                //     return R.handleError(res, 'error_during_saving_contact_from_api', 500);
+                // }
+                // const subscriber = new Subscriber(null, null, contactData.id);
+                // const subscriberData = await subscriber.savedByApi();
+                // if (!subscriberData){
+                //     return R.handleError(res, 'error_during_saving_subscriber_from_api', 500);
+                // }
+                // const formulaData = await Formula.getFormula(decoderApiResponse.formula.code);
+                // if (!formulaData){
+                //     return R.handleError(res, 'error_during_search_formula', 500);
+                // }
+                // console.log("formulaData is :", formulaData);
+                // const decoder = new Decoder(null, null, decoderApiResponse.device, decoderApiResponse.identifier, decoderApiResponse.location, subscriberData.id, decoderApiResponse.started, decoderApiResponse.finished, decoderApiResponse.remaining, formulaData.id, null, decoderApiResponse.existed, decoderApiResponse.verified, decoderApiResponse.forbidden, decoderApiResponse.comment);
+                // console.log("decoder is:", decoder);
+                // decoderResponse = await decoder.save();
+                // if (!decoderResponse){
+                //     return R.response(false, 'decoder_api_saved_failed', res, 500);
+                // }
                 // return R.response(true, decoderResponse.toJson(), res, 200);
                 // console.log("decoderResponse is:", decoderApiResponse.subscriber.city.country.alpha3);
+
+                return R.response(false, decoderApiResponse, res, 200, true);
             }
         }
 
@@ -140,5 +141,6 @@ router.get('/all', async(req, res) => {
         return R.handleError(res, error.message, 500);
     }
 })
+
 
 module.exports = router;

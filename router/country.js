@@ -2,7 +2,6 @@ const express = require('express');
 const {Country} = require("../lib/class/Country");
 const R = require("../lib/tool/Reply");
 const W = require("../lib/tool/Watcher");
-const {City} = require("../lib/class/City");
 
 const router = express.Router();
 
