@@ -36,8 +36,9 @@ router.put('/deleted', async(req, res) =>{
     return R.response(true, 'formula_deleted_success', res, 200);
 });
 router.get('/all', async(req, res) => {
+    const {pin, code} = req.body;
     try {
-        const response = await Formula.getAllFromApi();
+        const response = await Formula.getAllFromApi(pin, code);
         if (!response){
             return R.response(false, 'operation_failed', res, 500);
         }

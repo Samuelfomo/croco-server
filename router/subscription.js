@@ -17,7 +17,7 @@ const router = express.Router();
 
 router.post('/new', async(req, res) =>{
     try {
-    const {guid, reference, duration, decoder, formula, options, user, mobile} = req.body;
+    const {guid, reference, duration, decoder, formula, options, user, mobile, gateway, pin, codeUser} = req.body;
 
     if (!formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
@@ -78,10 +78,8 @@ router.post('/new', async(req, res) =>{
         if (!userData){
             return R.response(false, 'user_search_error', res, 404);
         }
-
+        //  court de la subscription
         const amount = (formulaData.amount + totalOptionAmount) * duration;
-
-        console.log("amount is:", amount,"optionData is:", optionData);
 
         const account = await Account.getAmount(userData.id);
         if (!account){
@@ -144,7 +142,7 @@ router.post('/new', async(req, res) =>{
                  return R.response(false, 'subscription_update_status_error', res, 500);
              }
          }
-         const sendSubscription = await Subscription.sender(decoder, formula, options, duration);
+         const sendSubscription = await Subscription.sender(decoder, formula, options, duration, gateway);
          if (!sendSubscription){
              return R.response(false, 'sender_subscription_error', res, 500);
          }

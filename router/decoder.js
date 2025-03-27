@@ -43,7 +43,7 @@ const router = express.Router();
 
 router.put('/search', async(req, res) => {
     try {
-        const {device} = req.body;
+        const {device, gateway} = req.body;
 
         if (!V.device(device)) {
             return R.handleError(res, W.errorMissingFields, 400)
@@ -52,7 +52,7 @@ router.put('/search', async(req, res) => {
         let decoderResponse;
         decoderResponse = await Decoder.search(device);
         if(!decoderResponse){
-            const gateway = 1963;
+            // const gateway = 1963;
             const decoderApiResponse = await Decoder.getApiResponse(device, gateway);
             if (!decoderApiResponse){
                 return R.response(false, 'decoder_searched_not_found', res, 404);

@@ -68,7 +68,8 @@ router.put('/deleted', async(req, res) => {
 })
 router.get('/all', async(req, res) => {
     try {
-        const response = await Option.getAllFromApi();
+        const {pin , code} = req.body;
+        const response = await Option.getAllFromApi(pin , code);
         if (!response){
             return R.response(false, 'operation_failed', res, 500);
         }

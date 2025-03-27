@@ -7,14 +7,14 @@ const router = express.Router();
 
 router.get('', async(req, res) => {
     try {
-
-         const formulaResponse = await Formula.getAllFromApi();
+            const {pin, code} = req.body;
+         const formulaResponse = await Formula.getAllFromApi(pin, code);
 
         if (!formulaResponse){
             return R.response(false, 'empty_formulas', res, 404);
         }
 
-        const optionResponse = await Option.getAllFromApi();
+        const optionResponse = await Option.getAllFromApi(pin, code);
         if(!optionResponse){
             return R.response(false, 'empty_options', res, 404);
         }
