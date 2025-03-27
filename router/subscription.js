@@ -8,7 +8,7 @@ const {Formula} = require("../lib/class/Formula");
 const {Option} = require("../lib/class/Option");
 const {User} = require("../lib/class/User");
 const {Account} = require("../lib/class/Account");
-const {Payement} = require("../lib/class/Payement");
+const {Transaction} = require("../lib/class/Transaction");
 const {Status} = require("../lib/class/Status");
 const {Operation} = require("../lib/class/Operation");
 const {Contact} = require("../lib/class/Contact");
@@ -36,7 +36,7 @@ router.post('/new', async(req, res) =>{
        return R.response(false, 'subscriber_search_error', res, 404);
    }
 
-   const oldFormulaData = await Formula.getFormula(decoderData.formula.code);
+   const oldFormulaData = await Formula.getFormulaByCode(decoderData.formula.code);
    if (!oldFormulaData){
        return R.response(false, 'old_formula_search_error', res, 404);
    }
@@ -45,14 +45,6 @@ router.post('/new', async(req, res) =>{
     if (!formulaData){
         return R.response(false, 'formula_search_error', res, 404);
     }
-
-        // let optionData = options;
-        // if(options && options.trim()){
-        //      optionData = await Option.getByCode(options);
-        //     if (!optionData){
-        //         return R.response(false, 'option_search_error', res, 404);
-        //     }
-        // }
 
         let optionData = "";
         let optionsArray = [];
@@ -129,7 +121,7 @@ router.post('/new', async(req, res) =>{
             return R.response(false, 'status_search_error', res, 404);
         }
         let payementResponse;
-        const payement = new Payement(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null, mobile, null);
+        const payement = new Transaction(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null, mobile, null);
          payementResponse = await payement.save();
          if(!payementResponse){
              const statusFailed = await Status.getStatusFailed(operationData.id);
@@ -142,7 +134,7 @@ router.post('/new', async(req, res) =>{
          const newAccountBalance = await Account.updateBalance(payementResponse.account, newBalance);
          if (newAccountBalance === false){
              const payementStatusFailed = await Status.getStatusFailed(operation.id);
-             const payementFailed = await Payement.updatedStatus(subscriptionResponse.id, payementStatusFailed.id);
+             const payementFailed = await Transaction.updatedStatus(subscriptionResponse.id, payementStatusFailed.id);
              if(!payementFailed){
                  return R.response(false, 'payement_update_status_error', res, 500);
              }

@@ -1,5 +1,5 @@
 const express = require('express');
-const {Payement} = require("../lib/class/Payement");
+const {Transaction} = require("../lib/class/Transaction");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 

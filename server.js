@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const host = '127.0.0.1';
 const port = 3000;
-const os = require('os');
+// const os = require('os');
 const path = require('path');
 const paths = require('./config/paths');
 const verifyToken = require('./config/auth');
@@ -20,6 +20,7 @@ const CityModel = require(path.join(paths.MDL_DIR, 'CityModel'));
 const ContactModel = require(path.join(paths.MDL_DIR, 'ContactModel'));
 const OptionModel = require(path.join(paths.MDL_DIR, 'OptionModel'));
 const FormulaModel = require(path.join(paths.MDL_DIR, 'FormulaModel'));
+const SubscriberModel = require(path.join(paths.MDL_DIR, 'SubscriberModel'));
 const DecoderModel = require(path.join(paths.MDL_DIR, 'DecoderModel'));
 const ProfilModel = require(path.join(paths.MDL_DIR, 'ProfilModel'));
 const StatusModel = require(path.join(paths.MDL_DIR, 'StatusModel'));
@@ -29,7 +30,7 @@ const SubscriptionModel = require(path.join(paths.MDL_DIR, 'SubscriptionModel'))
 const LexiconModel = require(path.join(paths.MDL_DIR, 'LexiconModel'));
 const TerminalModel = require(path.join(paths.MDL_DIR, 'TerminalModel'));
 const AccountModel = require(path.join(paths.MDL_DIR, 'AccountModel'));
-const PayementModel = require(path.join(paths.MDL_DIR, 'PayementModel'));
+const TransactionModel = require(path.join(paths.MDL_DIR, 'TransactionModel'));
 // const StatusOperationModel = require(path.join(paths.MDL_DIR, 'StatusOperationModel'));
 
 async function main() {
@@ -39,6 +40,7 @@ async function main() {
         await ContactModel.initialize();
         await OptionModel.initialize();
         await FormulaModel.initialize();
+        await SubscriberModel.initialize();
         await DecoderModel.initialize();
         await ProfilModel.initialize();
         await StatusModel.initialize();
@@ -48,7 +50,7 @@ async function main() {
         await LexiconModel.initialize();
         await TerminalModel.initialize();
         await AccountModel.initialize();
-        await PayementModel.initialize();
+        await TransactionModel.initialize();
         // await StatusOperationModel.initialize();
 
         console.log('Application initialized successfully');
