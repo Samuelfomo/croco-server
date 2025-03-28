@@ -3,7 +3,6 @@ const {Decoder} = require("../lib/class/Decoder");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 const V = require("../lib/shared/utils/validation");
-const {Contact} = require("../lib/class/Contact");
 const {Formula} = require("../lib/class/Formula");
 const {Subscriber} = require("../lib/class/Subscriber");
 

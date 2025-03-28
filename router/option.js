@@ -38,7 +38,7 @@ router.post('/add', async(req, res) => {
 
         // ✅ Convertit la liste d'IDs en string "1,2,3"
         formulasString = validFormulas.join(",");
-        const  option = new Option(null, guid, code ,name, amount, formulasString, description);
+        const  option = new Option(null, guid, code ,name, amount, formulasString, description, null);
         const entry = await option.save();
         if(!entry){
             return R.response(false, 'error_during_save', res, 500);

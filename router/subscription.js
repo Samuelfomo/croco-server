@@ -142,7 +142,7 @@ router.post('/new', async(req, res) =>{
                  return R.response(false, 'subscription_update_status_error', res, 500);
              }
          }
-         const sendSubscription = await Subscription.sender(decoder, formula, options, duration, gateway);
+         const sendSubscription = await Subscription.sender(decoder, formula, options, duration, gateway, pin, codeUser);
          if (!sendSubscription){
              return R.response(false, 'sender_subscription_error', res, 500);
          }
