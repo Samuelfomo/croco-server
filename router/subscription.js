@@ -74,7 +74,7 @@ router.post('/new', async(req, res) =>{
         // ✅ Convertit la liste d'IDs en string "1,2,3"
         optionData = validOptions.join(",");
 
-        const userData = await User.getUser(user);
+        const userData = await User.getUserByGuid(user);
         if (!userData){
             return R.response(false, 'user_search_error', res, 404);
         }
@@ -179,10 +179,9 @@ router.put('/myActivity', async (req, res) => {
             return R.handleResponse(res, 'date_end_before_start', 400);
         }
 
-        const userId = await User.getUser(user);
-        const userResponse = await User.fromJson(userId);
+        const userResponse = await User.getUserByGuid(user);
 
-        if (!userId) {
+        if (!userResponse) {
             return R.response(false, 'user_not_found', res, 404);
         }
 

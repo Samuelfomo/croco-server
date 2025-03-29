@@ -70,7 +70,7 @@ router.put('/validate', async(req, res) => {
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const existPartner = await User.getUser(user)
+        const existPartner = await User.getUserByGuid(user)
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
@@ -96,7 +96,7 @@ router.put('/blocked', async(req, res) => {
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const existPartner = await User.getUser(user);
+        const existPartner = await User.getUserByGuid(user);
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
@@ -121,7 +121,7 @@ router.put('/removed', async(req, res) => {
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-        const existPartner = await User.getUser(user)
+        const existPartner = await User.getUserByGuid(user)
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
@@ -146,7 +146,7 @@ router.put('/delete', async(req, res) => {
         if (!user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const existPartner = await User.getUser(user);
+        const existPartner = await User.getUserByGuid(user);
         if(!existPartner){
             return R.handleError(res, 'Permission_denied', 403);
         }
@@ -164,7 +164,7 @@ router.put('/mypartner', async(req, res) => {
         if (!manager){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const existManager = await User.getByGuid(manager);
+        const existManager = await User.getUserByGuid(manager);
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
@@ -196,7 +196,7 @@ router.post('/add', async(req, res) => {
         let createdByResponse;
 
         if(manager){
-            createdByResponse = await User.getByGuid(manager);
+            createdByResponse = await User.getUserByGuid(manager);
             if (!createdByResponse){
                 return R.handleError(res, 'manager_not_found', 404);
             }
@@ -231,7 +231,7 @@ router.put('/createdPin', async(req, res) =>{
        if (!user || !pin){
            return R.handleError(res, W.errorMissingFields, 400);
        }
-       const existUser = await User.getUser(user);
+       const existUser = await User.getUserByGuid(user);
        if (!existUser){
            return R.response(false, 'user_not_found', res, 404);
        }
