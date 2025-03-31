@@ -1,6 +1,6 @@
 const api ={
     token : {
-        secret: 'SamiApiToken', // À changer en production!
+        secret: 'SamiApiToken',
         expiresIn: '24h',
     },
     config : {

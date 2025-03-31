@@ -5,7 +5,7 @@ const R = require("../lib/tool/Reply");
 const JWT = require("../config/jwt");
 const crypto = require("crypto");
 const jwt = require('jsonwebtoken');
-const verifyToken = require('../config/auth');
+// const verifyToken = require('../config/auth');
 
 const router = express.Router();
 
