@@ -37,6 +37,9 @@ router.post('/add', async (req, res) => {
 router.get('/list_all', async (req, res) => {
     try {
         const entries = await Lexicon.list_all();
+        if (entries.length > 0) {
+            return R.response(false, 'list_is_empty', res, 200);
+        }
         return R.response(true, entries, res, 200);
     } catch (error) {
         return R.response(false, error.message, res, 500);

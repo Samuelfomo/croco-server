@@ -46,8 +46,8 @@ router.put('/check', async(req, res) => {
         {
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const userAdmin = new User(null, null, null, manager, null, null, null, null, null, null, null, null, null);
-        const existCreatedBy = await userAdmin.getUserManager();
+
+        const existCreatedBy = await User.getManagerByCode(manager);
         if(!existCreatedBy){
             return R.handleError(res, 'manager_not_found', 404);
         }
@@ -58,6 +58,7 @@ router.put('/check', async(req, res) => {
         return R.handleError(res, error.message, 500);
     }
 });
+
 router.put('/validate', async(req, res) => {
     try {
         const {manager, user} = req.body;
@@ -66,7 +67,7 @@ router.put('/validate', async(req, res) => {
             return R.handleError(res, W.errorMissingFields, 400);
         }
 
-        const existManager = await User.getManager(manager);
+        const existManager = await User.getUserByGuid(manager);
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
@@ -92,7 +93,7 @@ router.put('/blocked', async(req, res) => {
         if (!manager || !user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const existManager = await User.getManager(manager)
+        const existManager = await User.getUserByGuid(manager)
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
@@ -117,7 +118,7 @@ router.put('/removed', async(req, res) => {
         if (!manager || !user){
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        const existManager = await User.getManager(manager);
+        const existManager = await User.getUserByGuid(manager);
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }

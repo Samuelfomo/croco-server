@@ -11,7 +11,7 @@ const router = express.Router();
 router.post('/add', async(req, res) => {
     try {
         const {guid, firstname, lastname, city, location, language, gender, mobile, email} = req.body;
-        if (!lastname || !city|| !language || !gender || !mobile){
+        if (!lastname.trim() || !city || !language || !gender || !mobile || !email.trim()){
           return R.handleError(res, W.errorMissingFields, 400);
         }
 
@@ -28,7 +28,7 @@ router.post('/add', async(req, res) => {
         if (!cityResponse){
             return R.handleError(res, 'city_not_found', 404);
         }
-        const  contact = new Contact(null, guid, firstname, lastname, location, language, gender, mobile, email && email.trim() ? email.trim() : null, cityResponse);
+        const  contact = new Contact(null, guid, firstname? firstname.trim() : null, lastname, location? location.trim() : null, language, gender, mobile, email.trim(), cityResponse, null);
         console.log(contact);
         const entry = await contact.save();
         return R.response(true, entry.toJson(), res, 200);
