@@ -5,6 +5,7 @@ const {Contact} = require("../lib/class/Contact");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
 const V = require("../lib/shared/utils/validation")
+const {Account} = require("../lib/class/Account");
 
 const router = express.Router();
 
@@ -75,9 +76,19 @@ router.put('/validate', async(req, res) => {
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        if(Number(existPartner.createdBy) === Number(existManager.id)){
+        console.log(existManager.guid, existPartner.createdBy.guid);
+        if(Number(existPartner.createdBy.guid) === Number(existManager.guid)){
             const updatePartner = await User.update(user);
-            return R.response(true, updatePartner.toJson(), res, 200);
+            if(!updatePartner){
+                return R.handleError(res, 'partner_activated_not_found', 404);
+            }
+            const myAccount = new Account(null, null, null, updatePartner.id, null);
+            const response = await myAccount.saved();
+            if(!response){
+                return R.response(false, `error_during_created_account_${updatePartner.name}`, res, 500);
+            }
+            // return R.response(true, {User: updatePartner.toJson(), Account: response.toJson()}, res, 200);
+            return R.response(true, response.toJson(), res, 200);
         }
         return R.handleError(res, 'Permission_denied', 403);
     }
@@ -101,7 +112,7 @@ router.put('/blocked', async(req, res) => {
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        if(Number(existPartner.createdBy) === Number(existManager.id)){
+        if(Number(existPartner.createdBy.guid) === Number(existManager.guid)){
             const updatePartner = await User.blocked(user);
             return R.response(true, updatePartner.toJson(), res, 200);
         }
@@ -126,7 +137,10 @@ router.put('/removed', async(req, res) => {
         if(!existPartner){
             return R.handleError(res, 'partner_not_found', 404);
         }
-        if(Number(existPartner.createdBy) === Number(existManager.id)){
+        if(existPartner.activated === true){
+            return R.response(false, 'permission_denied', res, 401);
+        }
+        if(Number(existPartner.createdBy.guid) === Number(existManager.guid)){
             const removed = await User.removed(user);
             if (removed === 0){
                 return R.response(false, 'error_during_removed', res, 500);
@@ -158,7 +172,7 @@ router.put('/delete', async(req, res) => {
         return R.handleError(res, error.message, 500);
     }
 });
-router.put('/mypartner', async(req, res) => {
+router.put('/myPartner', async(req, res) => {
     try {
         const {manager} = req.body;
 
@@ -236,7 +250,7 @@ router.put('/createdPin', async(req, res) =>{
        if (!existUser){
            return R.response(false, 'user_not_found', res, 404);
        }
-       if(existUser.activated !== true){
+       if(existUser.activated !== true || existUser.blocked === true){
            return R.response(false, 'user_activation_required', res, 401);
        }
        const response = await User.createdPin(user,pin);

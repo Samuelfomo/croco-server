@@ -80,6 +80,7 @@ main().then(r => {
     const DecoderRoute = require(path.join(paths.ROUTER, 'decoder'));
     const SubscriptionRoute = require(path.join(paths.ROUTER, 'subscription'));
     const OperationRoute = require(path.join(paths.ROUTER, 'operation'));
+    const AccountRoute = require(path.join(paths.ROUTER, 'account'));
     const AuthRoute = require(path.join(paths.ROUTER, 'auth'));
 
     app.use("/lexicon", lexiconRoute);
@@ -95,6 +96,7 @@ main().then(r => {
     app.use("/decoder", verifyToken, DecoderRoute);
     app.use("/subscription", verifyToken, SubscriptionRoute);
     app.use("/operation", verifyToken, OperationRoute);
+    app.use("/account", verifyToken, AccountRoute);
     app.use("/token", AuthRoute);
 });
 

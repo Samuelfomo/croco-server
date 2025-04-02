@@ -17,7 +17,7 @@ const router = express.Router();
 
 router.post('/new', async(req, res) =>{
     try {
-    const {guid, reference, duration, decoder, formula, options, user, mobile, gateway, pin, codeUser} = req.body;
+    const {guid, reference, duration, decoder, formula, options, user, gateway, pin, codeUser} = req.body;
 
     if (!formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
@@ -119,8 +119,8 @@ router.post('/new', async(req, res) =>{
             return R.response(false, 'status_search_error', res, 404);
         }
         let payementResponse;
-        const payement = new Transaction(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null, mobile, null);
-         payementResponse = await payement.save();
+        const payement = new Transaction(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null);
+         payementResponse = await payement.saved();
          if(!payementResponse){
              const statusFailed = await Status.getStatusFailed(operationData.id);
              subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, statusFailed.id);
@@ -132,7 +132,7 @@ router.post('/new', async(req, res) =>{
          const newAccountBalance = await Account.updateBalance(payementResponse.account, newBalance);
          if (newAccountBalance === false){
              const payementStatusFailed = await Status.getStatusFailed(operation.id);
-             const payementFailed = await Transaction.updatedStatus(subscriptionResponse.id, payementStatusFailed.id);
+             const payementFailed = await Transaction.updatedStatus(payementResponse.id, payementStatusFailed.id);
              if(!payementFailed){
                  return R.response(false, 'payement_update_status_error', res, 500);
              }
