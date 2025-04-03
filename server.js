@@ -18,7 +18,7 @@ app.use(express.json());
 const CountryModel = require(path.join(paths.MDL_DIR, 'CountryModel'));
 const CityModel = require(path.join(paths.MDL_DIR, 'CityModel'));
 const ContactModel = require(path.join(paths.MDL_DIR, 'ContactModel'));
-const OptionModel = require(path.join(paths.MDL_DIR, 'OptionModel'));
+// const OptionModel = require(path.join(paths.MDL_DIR, 'OptionModel'));
 const FormulaModel = require(path.join(paths.MDL_DIR, 'FormulaModel'));
 const SubscriberModel = require(path.join(paths.MDL_DIR, 'SubscriberModel'));
 const DecoderModel = require(path.join(paths.MDL_DIR, 'DecoderModel'));
@@ -38,7 +38,7 @@ async function main() {
         await CountryModel.initialize();
         await CityModel.initialize();
         await ContactModel.initialize();
-        await OptionModel.initialize();
+        // await OptionModel.initialize();
         await FormulaModel.initialize();
         await SubscriberModel.initialize();
         await DecoderModel.initialize();
@@ -74,7 +74,7 @@ main().then(r => {
     const CountryRoute = require(path.join(paths.ROUTER, 'country'));
     const CityRoute = require(path.join(paths.ROUTER, 'city'));
     const statusRoute = require(path.join(paths.ROUTER, 'status'));
-    const OptionRoute = require(path.join(paths.ROUTER, 'option'));
+    // const OptionRoute = require(path.join(paths.ROUTER, 'option'));
     const FormulaRoute = require(path.join(paths.ROUTER, 'formula'));
     const RequirementRoute = require(path.join(paths.ROUTER, 'requirement'));
     const DecoderRoute = require(path.join(paths.ROUTER, 'decoder'));
@@ -90,7 +90,7 @@ main().then(r => {
     app.use("/country", verifyToken, CountryRoute);
     app.use("/city", verifyToken, CityRoute);
     app.use("/status", verifyToken, statusRoute);
-    app.use("/option", verifyToken, OptionRoute);
+    // app.use("/option", verifyToken, OptionRoute);
     app.use("/formula", verifyToken, FormulaRoute);
     app.use("/requirement", verifyToken, RequirementRoute);
     app.use("/decoder", verifyToken, DecoderRoute);

@@ -15,11 +15,11 @@ const {Contact} = require("../lib/class/Contact");
 
 const router = express.Router();
 
-router.post('/new', async(req, res) =>{
+router.post('/renew', async(req, res) =>{
     try {
     const {guid, reference, duration, decoder, formula, options, user, gateway, pin, codeUser} = req.body;
 
-    if (!formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
+    if (!formula || !formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
     }
     if (!V.device(decoder)){
@@ -161,22 +161,10 @@ router.post('/new', async(req, res) =>{
 
 router.put('/myActivity', async (req, res) => {
     try {
-        const { user, dateStart, dateEnd } = req.body;
+        const { user, dateStart, dateEnd  } = req.body;
 
-        if (!Number(user) || !dateStart) {
+        if (!V.guid(user)) {
             return R.handleError(res, W.errorMissingFields, 400);
-        }
-
-        let dateFinish = dateEnd || dateStart;
-
-        // Vérification du format des dates
-        if (!V.date(dateStart) || !V.date(dateFinish)) {
-            return R.handleResponse(res, 'incorrect_date_format', 400);
-        }
-
-        // Comparaison des dates
-        if (new Date(dateFinish) < new Date(dateStart)) {
-            return R.handleResponse(res, 'date_end_before_start', 400);
         }
 
         const userResponse = await User.getUserByGuid(user);
@@ -184,8 +172,31 @@ router.put('/myActivity', async (req, res) => {
         if (!userResponse) {
             return R.response(false, 'user_not_found', res, 404);
         }
+        const dateF = new Date();
+        const dateB = new Date(dateF.getTime() - 30 * 24 * 60 * 60 * 1000);
+        let dateFinish = dateF.toISOString().split('T')[0];
+        let dateBeginning = dateB.toISOString().split('T')[0];
 
-        const userActivity = await Subscription.getActivityUser(userResponse.id, dateStart, dateFinish);
+        if (dateStart){
+            console.log("I'm here")
+
+             dateFinish = dateEnd || dateStart;
+             dateBeginning = dateStart;
+
+            // Vérification du format des dates
+            if (!V.date(dateBeginning) || !V.date(dateFinish)) {
+                return R.handleResponse(res, 'incorrect_date_format', 400);
+            }
+
+            // Comparaison des dates
+            if (new Date(dateFinish) < new Date(dateBeginning)) {
+                return R.handleResponse(res, 'date_end_before_start', 400);
+            }
+        }
+
+        console.log("dateFinish", dateFinish, "dateStart", dateBeginning);
+
+        const userActivity = await Subscription.getActivityUser(userResponse.id, dateBeginning, dateFinish);
 
         if (!userActivity) {
             return R.response(false, 'user_activity_not_found', res, 404);
@@ -200,34 +211,3 @@ router.put('/myActivity', async (req, res) => {
 });
 
 module.exports = router;
-
-// router.put('/myActivity', async (req, res) => {
-//     try {
-//         const {user, dateStart, dateEnd} = req.body;
-//         if (!Number(user) || !dateStart){
-//             return R.handleError(res, W.errorMissingFields, 400);
-//         }
-//         let dateFinish = dateEnd;
-//         if(!dateEnd){
-//             dateFinish = dateStart;
-//         }
-//         if (!V.date(dateStart) || !V.date(dateFinish)){
-//             return R.handleResponse(res, 'incorrect_date_format', 400);
-//         }
-//         const userId = await User.getUser(user);
-//         const userResponse = await User.fromJson(userId);
-//         if (!userId){
-//             return R.response(false, 'user_not_found', res, 404);
-//         }
-//         const userActivity = await Subscription.getActivityUser(userResponse.id, dateStart, dateFinish);
-//         if (!userActivity){
-//             return R.response(false, 'user_activity_not_found', res, 404);
-//         }
-//
-//         const result = await Promise.all(userActivity.map(async (item)=>(await Subscription.fromJson(item)).toJson()));
-//         return R.response(true, result, res, 200);
-//     }
-//     catch (error){
-//         return R.handleError(res, error.message, 500);
-//     }
-// });

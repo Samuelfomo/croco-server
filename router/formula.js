@@ -2,47 +2,61 @@ const express = require('express');
 const {Formula} = require("../lib/class/Formula");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
-const {Country} = require("../lib/class/Country");
 
 const router = express.Router();
 
 router.post("/add", async (req, res) => {
     try {
-        const { guid, code, name, amount, country, description} = req.body;
+        const { guid, code, name, amount, is_option, includes, extendes, description} = req.body;
 
         if (!code.trim() || !name.trim() || !amount) {
             return R.handleError(res, W.errorMissingFields, 400);
         }
-        let countryString = "";
-        let countryArray = [];
 
-        if (country) {
-            if (Array.isArray(country)) {
-                countryArray = country;
-            } else if (typeof country === "string") {
-                countryArray = country.split(",");
+        let includesArray = [];
+
+        if (includes) {
+            if (Array.isArray(includes)) {
+                includesArray = includes;
+            } else if (typeof includes === "string") {
+                includesArray = includes.split(",");
             } else {
                 return R.response(false, "Invalid options format", res, 400);
             }
         }
 
-        let validCountry = [];
-        for (let countryGuid of countryArray) {
-            const countryResult = await Country.getCountryByGuid(countryGuid.trim());
-            if (!countryResult) {
-                return R.response(false, `Country "${countryGuid}" not found`, res, 404);
+        let validIncludes = [];
+        for (let includesCode of includesArray) {
+            const includesResult = await Formula.getFormulaByCode(includesCode);
+            if (!includesResult) {
+                return R.response(false, `Country "${includesCode}" not found`, res, 404);
             }
-            validCountry.push(countryResult.id);
+            validIncludes.push(includesResult.id);
         }
 
-        countryString = validCountry.join(",");
+        let extendsArray = [];
 
-        // const countryData = await Country.getCountryByGuid(country);
-        // if (!countryData) {
-        //     return R.handleError(res, 'country_not_found', 404);
-        // }
+        if (extendes) {
+            if (Array.isArray(extendes)) {
+                extendsArray = extendes;
+            } else if (typeof extendes === "string") {
+                extendsArray = extendes.split(",");
+            } else {
+                return R.response(false, "Invalid options format", res, 400);
+            }
+        }
 
-        const formula = new Formula(null, guid, code, name, amount, countryString, description, null);
+        let validExtends = [];
+        for (let extendsCode of extendsArray) {
+            const extendsResult = await Formula.getFormulaByCode(extendsCode.trim());
+            if (!extendsResult) {
+                return R.response(false, `Country "${extendsCode}" not found`, res, 404);
+            }
+            validExtends.push(extendsResult.id);
+        }
+
+        const formula = new Formula(null, guid, code, name, amount, is_option, validIncludes, validExtends, description, null);
+        console.log(formula);
         const entry = await formula.save();
         if (!entry) {
             return R.response(false, "error_during_saving", res, 500);

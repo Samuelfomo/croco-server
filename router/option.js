@@ -36,7 +36,7 @@ router.post('/add', async(req, res) => {
             validFormulas.push(formulasResult.id);
         }
 
-        // ✅ Convertit la liste d'IDs en string "1,2,3"
+        // ✅ Convertit la liste d'IDs en Json [1,2,3]
         formulasString = validFormulas.join(",");
         const  option = new Option(null, guid, code ,name, amount, formulasString, description, null);
         const entry = await option.save();
@@ -49,6 +49,7 @@ router.post('/add', async(req, res) => {
         return R.handleError(res, error.message, 500);
     }
 })
+
 router.put('/deleted', async(req, res) => {
     try {
         const {code} = req.body;
