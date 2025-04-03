@@ -56,7 +56,6 @@ router.post("/add", async (req, res) => {
         }
 
         const formula = new Formula(null, guid, code, name, amount, is_option, validIncludes, validExtends, description, null);
-        console.log(formula);
         const entry = await formula.save();
         if (!entry) {
             return R.response(false, "error_during_saving", res, 500);
