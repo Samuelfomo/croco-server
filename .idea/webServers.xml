@@ -10,7 +10,7 @@
         </fileTransfer>
       </webServer>
       <webServer id="87affd18-722a-47e8-9a52-e0ba8e0cdee1" name="croco+aws">
-        <fileTransfer accessType="SFTP" host="13.39.158.20" port="22" sshConfigId="3c3f3082-7c4a-4ac2-bea5-ebdc33ee61a4" sshConfig="ubuntu@13.39.158.20:22 key" keyPair="true">
+        <fileTransfer accessType="SFTP" host="13.38.59.232" port="22" sshConfigId="3c3f3082-7c4a-4ac2-bea5-ebdc33ee61a4" sshConfig="ubuntu@13.38.59.232:22 key" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

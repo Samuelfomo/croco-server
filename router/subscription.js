@@ -137,7 +137,8 @@ router.post('/renew', async(req, res) =>{
         }
         let payementResponse;
         const payement = new Transaction(null, null, amount, account.id, false, account.balance, status.id, subscriptionResponse.id, null);
-         payementResponse = await payement.saved();
+
+        payementResponse = await payement.saved();
          if(!payementResponse){
              const statusFailed = await Status.getStatusFailed(operationData.id);
              subscriptionResponse = await Subscription.updateStatus(subscriptionResponse.id, statusFailed.id);
