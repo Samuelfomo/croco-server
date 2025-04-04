@@ -5,13 +5,12 @@ const R = require("../lib/tool/Reply");
 const V = require("../lib/shared/utils/validation");
 const {Decoder} = require("../lib/class/Decoder");
 const {Formula} = require("../lib/class/Formula");
-const {Option} = require("../lib/class/Option");
 const {User} = require("../lib/class/User");
 const {Account} = require("../lib/class/Account");
 const {Transaction} = require("../lib/class/Transaction");
 const {Status} = require("../lib/class/Status");
 const {Operation} = require("../lib/class/Operation");
-const {Contact} = require("../lib/class/Contact");
+const {Subscriber} = require("../lib/class/Subscriber");
 
 const router = express.Router();
 
@@ -22,6 +21,7 @@ router.post('/renew', async(req, res) =>{
     if (!formula || !formula.trim() || !Number(duration) || !Number(decoder) || !Number(user)){
         return R.handleError(res, W.errorMissingFields, 400);
     }
+
     if (!V.device(decoder)){
         return R.handleError(res, 'entry_detected_error', 400);
     }
@@ -31,7 +31,9 @@ router.post('/renew', async(req, res) =>{
         return R.response(false, 'decoder_search_not_found', res, 404);
     }
 
-    const subscriberData = await Contact.getContactByGuid(decoderData.subscriber.code)
+
+    const subscriberData = await Subscriber.getSubscriberByGuid(decoderData.subscriber.code)
+    // const subscriberData = await Contact.getContactByGuid(decoderData.subscriber.code)
    if (!subscriberData){
        return R.response(false, 'subscriber_search_error', res, 404);
    }
@@ -45,8 +47,16 @@ router.post('/renew', async(req, res) =>{
     if (!formulaData){
         return R.response(false, 'formula_search_error', res, 404);
     }
+    if (formulaData.is_option !== false) {
+        return R.response(false, 'invalid_formula', res, 400);
+    }
 
-        let optionData = "";
+    let family = "RENEWAL";
+    if (oldFormulaData.code !== formulaData.code){
+        family = "UPGRADE";
+    }
+
+        // let optionData = "";
         let optionsArray = [];
         let totalOptionAmount = 0;
 
@@ -63,16 +73,23 @@ router.post('/renew', async(req, res) =>{
         // ✅ Vérification que toutes les options existent
         let validOptions = [];
         for (let optionCode of optionsArray) {
-            const optionResult = await Option.getByCode(optionCode.trim());
+            const optionResult = await Formula.getFormulaByCode(optionCode.trim());
             if (!optionResult) {
                 return R.response(false, `Option "${optionCode}" not found`, res, 404);
             }
+            if (optionResult.is_option !== true) {
+                return R.response(false, 'invalid_option', res, 400);
+            }
             validOptions.push(optionResult.id);
-            totalOptionAmount += optionResult.amount;  // Ajoute le montant de l'option
+
+            if (formulaData.includes.some(entry => entry.code === optionResult.code)) {
+                optionResult.amount = 0
+            }
+            totalOptionAmount += optionResult.amount;
         }
 
-        // ✅ Convertit la liste d'IDs en string "1,2,3"
-        optionData = validOptions.join(",");
+        // // ✅ Convertit la liste d'IDs en string "1,2,3"
+        // optionData = validOptions.join(",");
 
         const userData = await User.getUserByGuid(user);
         if (!userData){
@@ -102,7 +119,7 @@ router.post('/renew', async(req, res) =>{
         }
 
         let subscriptionResponse;
-        const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, totalOptionAmount, statusValue.id, operationData.id, decoderData.id, formulaData.id, oldFormulaData.id, optionData, userData.id, null, null )
+        const subscriptionData = new Subscription(null, guid, reference, true, duration, amount, formulaData.amount, totalOptionAmount, statusValue.id, operationData.id, decoderData.id, formulaData.id, oldFormulaData.id, validOptions, userData.id, null, null )
         subscriptionResponse = await subscriptionData.save();
         if (!subscriptionResponse){
             return R.response(false, 'subscription_save_error', res, 500);
@@ -151,8 +168,9 @@ router.post('/renew', async(req, res) =>{
           if (!subscriptionResponse){
               return R.response(false, 'subscription_update_next_status_error', res, 500);
           }
+          const result = subscriptionResponse.toJson();
 
-        return R.response(true, subscriptionResponse.toJson(), res, 200);
+        return R.response(true, {...result, family: family}, res, 200);
 
     } catch (error){
         return R.handleError(res, error.message, 500);
@@ -209,5 +227,13 @@ router.put('/myActivity', async (req, res) => {
         return R.handleError(res, error.message, 500);
     }
 });
+
+// router.post('/simulated', async (req, res) => {
+//     try {
+//         const { decoder, formula, options, duration } = req.body;
+//     }  catch (error) {
+//         return R.handleError(res, error.message, 500);
+//     }
+// })
 
 module.exports = router;

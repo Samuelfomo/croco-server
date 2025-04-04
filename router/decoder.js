@@ -42,7 +42,7 @@ const router = express.Router();
 
 router.put('/search', async(req, res) => {
     try {
-        const {device, gateway} = req.body;
+        const {device, gateway, code, pin} = req.body;
 
         if (!V.device(device)) {
             return R.handleError(res, W.errorMissingFields, 400)
@@ -52,7 +52,7 @@ router.put('/search', async(req, res) => {
         decoderResponse = await Decoder.search(device);
         if(!decoderResponse){
             // const gateway = 1963;
-            const decoderApiResponse = await Decoder.getApiResponse(device, gateway);
+            const decoderApiResponse = await Decoder.getApiResponse(device, gateway, code, pin);
             if (!decoderApiResponse){
                 return R.response(false, 'decoder_searched_not_found', res, 404);
             }
@@ -60,7 +60,6 @@ router.put('/search', async(req, res) => {
 
             if (decoderApiResponse.mobile) {
                const subscriberResponse = await Subscriber.getSubscriberByContact(decoderApiResponse.mobile);
-                console.log("subscriberResponse noejejjke; ", subscriberResponse);
 
                if (!subscriberResponse){
                    console.log("I'm here now")
@@ -87,7 +86,6 @@ router.put('/search', async(req, res) => {
             if (!formulaResponse){
                 return R.response(false, 'formula_not_found', res, 500);
             }
-            console.log("decoderApiResponse.expiry is:", decoderApiResponse.expiry);
             const decoderData = new Decoder(null, null, decoderApiResponse.canal_id, decoderApiResponse.decoder, formulaResponse.id, subscriberId, decoderApiResponse.expiry, null);
             const decoderSaved = await decoderData.save();
             if (!decoderSaved){

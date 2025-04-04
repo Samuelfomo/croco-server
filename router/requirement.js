@@ -56,12 +56,12 @@ router.get('', async(req, res) => {
         if (!formulaResult){
             return R.response(false, 'empty_formulas', res, 404);
         }
-        const optionResponse = await Option.getAll();
-        const optionResult = await Promise.all(optionResponse.map(async (entry) => (await Option.fromJson(entry)).toJson()));
-        if (!optionResult){
-            return R.response(false, 'empty_options', res, 404);
-        }
-        return R.response(true, {formulas: formulaResult, options: optionResult }, res, 200);
+        // const optionResponse = await Option.getAll();
+        // const optionResult = await Promise.all(optionResponse.map(async (entry) => (await Option.fromJson(entry)).toJson()));
+        // if (!optionResult){
+        //     return R.response(false, 'empty_options', res, 404);
+        // }
+        return R.response(true, formulaResult , res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
