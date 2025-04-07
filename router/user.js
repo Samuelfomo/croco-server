@@ -28,12 +28,16 @@ router.put('/login', async(req, res) => {
         if(entry.blocked === true || entry.activated === false || entry.deleted === true){
             return R.response(false, 'user_authentication_failed', res, 401)
         }
+        const accountData = await Account.getAmount(entry.id);
+        if(!accountData){
+            return R.response(false, 'user_account_not_found', res, 404);
+        }
         // const terminalData = new Terminal(null, null, userId, entry.id);
         // const terminal = await terminalData.save()
         // if (!terminal){
         //     return R.response(false, 'saving_failed', res, 400);
         // }
-        return R.response(true, entry.toJson(), res, 200);
+        return R.response(true, {...entry.toJson(), account: accountData.toJson() }, res, 200);
     }
     catch (error){
         return R.handleError(res, "internal_server_error", 500);
