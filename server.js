@@ -101,6 +101,24 @@ main().then(r => {
 });
 
 /**
+ * section logger data
+ * @type {{logError: function(*): void, logInfo: function(*): void}|{logError?: function(*): void, logInfo?: function(*): void}}
+ */
+const logger = require('./config/logger');
+
+// Catch erreurs non gérées
+process.on('uncaughtException', (err) => {
+    logger.logError(`Uncaught Exception: ${err.message}\n${err.stack}`);
+    process.exit(1); // Arrêt du serveur
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.logError(`Unhandled Rejection: ${reason}`);
+    process.exit(1);
+});
+
+
+/**
  * Listen app
  */
 app.listen(port, host, async() => {

@@ -56,8 +56,13 @@ router.put('/check', async(req, res) => {
         if(!existCreatedBy){
             return R.handleError(res, 'manager_not_found', 404);
         }
+        const accountData = await Account.getAmount(existCreatedBy.id);
+        if(!accountData){
+            return R.response(false, 'user_account_not_found', res, 404);
+        }
 
-        return R.response(true, existCreatedBy.toJson(), res, 200);
+        return R.response(true, {...existCreatedBy.toJson(), account: accountData.toJson() }, res, 200);
+        // return R.response(true, existCreatedBy.toJson(), res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
@@ -91,8 +96,14 @@ router.put('/validate', async(req, res) => {
             if(!response){
                 return R.response(false, `error_during_created_account_${updatePartner.name}`, res, 500);
             }
+            const accountData = await Account.getAmount(response.id);
+            if(!accountData){
+                return R.response(false, 'user_account_not_found', res, 404);
+            }
+
+            return R.response(true, {...response.toJson(), account: accountData.toJson() }, res, 200);
             // return R.response(true, {User: updatePartner.toJson(), Account: response.toJson()}, res, 200);
-            return R.response(true, response.toJson(), res, 200);
+            // return R.response(true, response.toJson(), res, 200);
         }
         return R.handleError(res, 'Permission_denied', 403);
     }
@@ -118,7 +129,14 @@ router.put('/blocked', async(req, res) => {
         }
         if(Number(existPartner.createdBy.guid) === Number(existManager.guid)){
             const updatePartner = await User.blocked(user);
-            return R.response(true, updatePartner.toJson(), res, 200);
+
+            const accountData = await Account.getAmount(updatePartner.id);
+            if(!accountData){
+                return R.response(false, 'user_account_not_found', res, 404);
+            }
+
+            return R.response(true, {...updatePartner.toJson(), account: accountData.toJson() }, res, 200);
+            // return R.response(true, updatePartner.toJson(), res, 200);
         }
         return R.handleError(res, 'Permission_denied', 403);
     }
@@ -170,7 +188,14 @@ router.put('/delete', async(req, res) => {
             return R.handleError(res, 'Permission_denied', 403);
         }
             const updatePartner = await User.deleted(user);
-            return R.response(true, updatePartner.toJson(), res, 200);
+
+        const accountData = await Account.getAmount(updatePartner.id);
+        if(!accountData){
+            return R.response(false, 'user_account_not_found', res, 404);
+        }
+
+        return R.response(true, {...updatePartner.toJson(), account: accountData.toJson() }, res, 200);
+            // return R.response(true, updatePartner.toJson(), res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
@@ -183,21 +208,57 @@ router.put('/myPartner', async(req, res) => {
         if (!manager){
             return R.handleError(res, W.errorMissingFields, 400);
         }
+
         const existManager = await User.getUserByGuid(manager);
         if(!existManager){
             return R.handleError(res, 'manager_not_found', 404);
         }
-            const allPartner = await User.getAllPartner(existManager.id);
-        if (!allPartner){
+
+        const allPartner = await User.getAllPartner(existManager.id);
+        if (!allPartner || allPartner.length === 0){
             return R.handleError(res, 'Your_have_not_partner', 404);
         }
-        const result = await Promise.all(allPartner.map(async (entry) => (await User.fromJson(entry)).toJson()));
-        return R.response(true,  result, res, 200);
+
+        const result = await Promise.all(allPartner.map(async (entry) => {
+            const partnerObj = await User.fromJson(entry);
+            const account = await Account.getAmount(partnerObj.id); // Associe le compte
+            return {
+                ...partnerObj.toJson(),
+                account: account ? account.toJson() : null
+            };
+        }));
+
+        return R.response(true, result, res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);
     }
 });
+
+// router.put('/myPartner', async(req, res) => {
+//     try {
+//         const {manager} = req.body;
+//
+//         if (!manager){
+//             return R.handleError(res, W.errorMissingFields, 400);
+//         }
+//         const existManager = await User.getUserByGuid(manager);
+//         if(!existManager){
+//             return R.handleError(res, 'manager_not_found', 404);
+//         }
+//             const allPartner = await User.getAllPartner(existManager.id);
+//         if (!allPartner){
+//             return R.handleError(res, 'Your_have_not_partner', 404);
+//         }
+//         const result = await Promise.all(allPartner.map(async (entry) => (await User.fromJson(entry)).toJson()));
+//
+//
+//         return R.response(true,  result, res, 200);
+//     }
+//     catch (error){
+//         return R.handleError(res, error.message, 500);
+//     }
+// });
 
 router.post('/add', async(req, res) => {
     try {
@@ -243,6 +304,50 @@ router.post('/add', async(req, res) => {
         return R.handleError(res, error.message, 500);
     }
 });
+// router.post('/newPartner', async(req, res) => {
+//     try {
+//         const {guid, contact, manager, name} = req.body;
+//
+//         if (!contact || !name){
+//             return R.handleError(res, W.errorMissingFields, 400);
+//         }
+//
+//         const contactResponse = await Contact.getContactByGuid(contact);
+//         if (!contactResponse){
+//             return R.handleError(res, 'contact_not_found', 404);
+//         }
+//
+//         let createdByResponse;
+//
+//         if(manager){
+//             createdByResponse = await User.getUserByGuid(manager);
+//             if (!createdByResponse){
+//                 return R.handleError(res, 'manager_not_found', 404);
+//             }
+//             if (createdByResponse.profil.reference !== "manager" && createdByResponse.profil.reference !== "partner"){
+//                 return R.handleError(res, 'permission_denied', 401);
+//             }
+//         }else {
+//             createdByResponse = await User.getDefaultManager();
+//             if(!createdByResponse){
+//                 return R.response(false, 'default_manager_don\'t_found', res, 404);
+//             }
+//         }
+//
+//         const profilResponse = await Profil.getByGuid();
+//
+//         if (!profilResponse){
+//             return R.handleError(res, 'profil_not_found', 404);
+//         }
+//
+//         const userData = new User(null, guid, name,null, null, profilResponse, contactResponse, false, false, createdByResponse, false, false, null);
+//         const entry = await userData.save();
+//         return R.response(true, entry.toJson(), res, 200);
+//     }
+//     catch (error){
+//         return R.handleError(res, error.message, 500);
+//     }
+// });
 
 router.put('/createdPin', async(req, res) =>{
    try {

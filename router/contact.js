@@ -23,13 +23,12 @@ router.post('/add', async(req, res) => {
             return R.handleError(res, "invalid_mobile_format", 400);
         }
 
-        const cityData = new City(null, city, null, null)
-        const cityResponse = await cityData.getByGuid()
+        const cityResponse = await City.getByGuid(city);
         if (!cityResponse){
             return R.handleError(res, 'city_not_found', 404);
         }
-        const  contact = new Contact(null, guid, firstname? firstname.trim() : null, lastname, location? location.trim() : null, language, gender, mobile, email.trim(), cityResponse, null);
-        console.log(contact);
+        const  contact = new Contact(null, guid, firstname? firstname.trim() : null, lastname, location? location.trim() : null, language, gender, mobile, email.trim(), cityResponse.id, null);
+        console.log("new contact is: ",contact);
         const entry = await contact.save();
         return R.response(true, entry.toJson(), res, 200);
     }

@@ -2,6 +2,7 @@ const express = require('express');
 const {Profil} = require("../lib/class/Profil");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
+const logger = require('../config/logger');
 
 const router = express.Router();
 
@@ -18,6 +19,7 @@ router.post('/add', async(req, res) => {
         return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){
+        logger.logError(`POST /profil/add - ${error.message}`);
         return R.handleError(res, error.message, 500);
     }
 })
