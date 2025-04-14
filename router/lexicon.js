@@ -19,13 +19,13 @@ router.post('/add', async (req, res) => {
 
         const lexicon = new Lexicon(reference, truncatedEnglish, french, portable, null, guid);
 
-        let entry;
+        // let entry;
         // if (guid) {
         //     entry = await lexicon.save();
         // } else {
         //     entry = await lexicon.save();
         // }
-        entry = await lexicon.save();
+       const entry = await lexicon.save();
 
         return R.response(true, entry.toJson(), res, 200);
 
@@ -37,7 +37,7 @@ router.post('/add', async (req, res) => {
 router.get('/list_all', async (req, res) => {
     try {
         const entries = await Lexicon.list_all();
-        if (entries.length > 0) {
+        if (!entries.length) {
             return R.response(false, 'list_is_empty', res, 200);
         }
         return R.response(true, entries, res, 200);
