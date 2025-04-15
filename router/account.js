@@ -2,6 +2,7 @@ const express = require('express');
 const {Account} = require("../lib/class/Account");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
+const RoleValidator = require("../lib/shared/utils/value");
 const {User} = require("../lib/class/User");
 const {Transaction} = require("../lib/class/Transaction");
 const {Status} = require("../lib/class/Status");
@@ -40,7 +41,8 @@ router.post('/add', async(req, res) => {
             return R.response(false, 'user_manager_not_found', res, 404);
         }
 
-        if (managerResponse.profil.reference !== "partner" && managerResponse.profil.reference !== "manager") {
+        if (!RoleValidator.partner(managerResponse.profil.reference) && !RoleValidator.manager(managerResponse.profil.reference)) {
+        // if (managerResponse.profil.reference !== "partner" && managerResponse.profil.reference !== "manager") {
             return R.response(false, 'permission_denied', res, 401);
         }
 

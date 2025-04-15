@@ -4,7 +4,8 @@ const {Profil} = require("../lib/class/Profil");
 const {Contact} = require("../lib/class/Contact");
 const W = require("../lib/tool/Watcher");
 const R = require("../lib/tool/Reply");
-const V = require("../lib/shared/utils/validation")
+const V = require("../lib/shared/utils/validation");
+const RoleValidator = require("../lib/shared/utils/value");
 const {Account} = require("../lib/class/Account");
 
 const router = express.Router();
@@ -91,17 +92,17 @@ router.put('/validate', async(req, res) => {
             if(!updatePartner){
                 return R.handleError(res, 'partner_activated_not_found', 404);
             }
-            const myAccount = new Account(null, null, null, updatePartner.id, null);
-            const response = await myAccount.saved();
-            if(!response){
-                return R.response(false, `error_during_created_account_${updatePartner.name}`, res, 500);
-            }
-            const accountData = await Account.getAmount(response.id);
+            // const myAccount = new Account(null, null, null, updatePartner.id, null);
+            // const response = await myAccount.saved();
+            // if(!response){
+            //     return R.response(false, `error_during_created_account_${updatePartner.name}`, res, 500);
+            // }
+            const accountData = await Account.getAmount(updatePartner.id);
             if(!accountData){
                 return R.response(false, 'user_account_not_found', res, 404);
             }
 
-            return R.response(true, {...response.toJson(), account: accountData.toJson() }, res, 200);
+            return R.response(true, {...updatePartner.toJson(), account: accountData.toJson() }, res, 200);
             // return R.response(true, {User: updatePartner.toJson(), Account: response.toJson()}, res, 200);
             // return R.response(true, response.toJson(), res, 200);
         }
@@ -262,7 +263,7 @@ router.put('/myPartner', async(req, res) => {
 
 router.post('/add', async(req, res) => {
     try {
-        const {guid, contact, manager, name} = req.body;
+        const {guid, contact, manager, name, profil} = req.body;
 
         if (!contact || !name){
             return R.handleError(res, W.errorMissingFields, 400);
@@ -280,7 +281,8 @@ router.post('/add', async(req, res) => {
             if (!createdByResponse){
                 return R.handleError(res, 'manager_not_found', 404);
             }
-            if (createdByResponse.profil.reference !== "manager" && createdByResponse.profil.reference !== "partner"){
+            if (!RoleValidator.manager(createdByResponse.profil.reference) && !RoleValidator.partner(createdByResponse.profil.reference)){
+            // if (createdByResponse.profil.reference !== "manager" && createdByResponse.profil.reference !== "partner"){
                 return R.handleError(res, 'permission_denied', 401);
             }
         }else {
@@ -289,16 +291,30 @@ router.post('/add', async(req, res) => {
                 return R.response(false, 'default_manager_don\'t_found', res, 404);
             }
         }
+        let profilValue = RoleValidator.salePoint() ;
+        if(profil){
+             profilValue = profil;
+        }
 
-        const profilResponse = await Profil.getByGuid();
+        const profilResponse = await Profil.getByReference(profilValue.toUpperCase());
 
         if (!profilResponse){
             return R.handleError(res, 'profil_not_found', 404);
         }
-
         const userData = new User(null, guid, name,null, null, profilResponse, contactResponse, false, false, createdByResponse, false, false, null);
         const entry = await userData.save();
-        return R.response(true, entry.toJson(), res, 200);
+        if (!entry){
+            return R.response(false, "error_has_occurred", res, 500);
+        }
+        const myAccount = new Account(null, null, null, entry.id, null);
+        const response = await myAccount.saved();
+        if(!response){
+            return R.response(false, `error_during_created_account_${entry.name}`, res, 500);
+        }
+
+        return R.response(true, {...entry.toJson(), account: response.toJson() }, res, 200);
+
+        // return R.response(true, entry.toJson(), res, 200);
     }
     catch (error){
         return R.handleError(res, error.message, 500);

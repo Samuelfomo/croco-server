@@ -26,12 +26,13 @@ router.post('/renew', async(req, res) =>{
         return R.handleError(res, 'entry_detected_error', 400);
     }
 
+        // search decoder
     const decoderData = await Decoder.getByDevice(decoder);
     if (!decoderData){
         return R.response(false, 'decoder_search_not_found', res, 404);
     }
 
-
+        // search subscriber by decoder
     const subscriberData = await Subscriber.getSubscriberByGuid(decoderData.subscriber.code)
     // const subscriberData = await Contact.getContactByGuid(decoderData.subscriber.code)
    if (!subscriberData){
@@ -87,9 +88,6 @@ router.post('/renew', async(req, res) =>{
             }
             totalOptionAmount += optionResult.amount;
         }
-
-        // // ✅ Convertit la liste d'IDs en string "1,2,3"
-        // optionData = validOptions.join(",");
 
         const userData = await User.getUserByGuid(user);
         if (!userData){
@@ -160,6 +158,7 @@ router.post('/renew', async(req, res) =>{
                  return R.response(false, 'subscription_update_status_error', res, 500);
              }
          }
+         console.log(subscriptionResponse.status.nextState);
          const sendSubscription = await Subscription.sender(decoder, formula, options, duration, gateway, pin, codeUser);
          if (!sendSubscription){
              return R.response(false, 'sender_subscription_error', res, 500);

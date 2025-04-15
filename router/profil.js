@@ -13,7 +13,7 @@ router.post('/add', async(req, res) => {
         if(!name.trim() || !reference.trim() || !description.trim()){
             return R.handleError(res, W.errorMissingFields, 400)
         }
-        const profil = new Profil(null, guid, name, reference, description);
+        const profil = new Profil(null, guid, name, reference.toUpperCase(), description);
 
          const entry = await profil.save();
         return R.response(true, entry.toJson(), res, 200);
